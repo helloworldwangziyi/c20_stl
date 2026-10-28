@@ -1,6 +1,8 @@
 #ifndef C20_STL_TYPE_TRAITS_HPP
 #define C20_STL_TYPE_TRAITS_HPP
 
+//  类型特征
+
 namespace c20_stl{
 
 template<typename T, T Value>
