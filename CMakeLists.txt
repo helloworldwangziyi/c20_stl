@@ -12,7 +12,17 @@ add_library(c20_stl INTERFACE)
 # 库文件来源
 target_include_directories(c20_stl INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-add_executable(c20_stl_smoke_test tests/smoke_test.cpp)
+enable_testing()
 
+# 每加一个测试,只需在列表里加一行文件名(不含 .cpp)
+set(TEST_SOURCES
+    smoke_test
+    test_type_traits
+)
 
-target_link_libraries(c20_stl_smoke_test PRIVATE c20_stl)
+foreach(name IN LISTS TEST_SOURCES)
+    add_executable(c20_${name} tests/${name}.cpp)
+    target_link_libraries(c20_${name} PRIVATE c20_stl)
+    add_test(NAME ${name} COMMAND c20_${name})
+endforeach()
+

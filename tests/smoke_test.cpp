@@ -6,7 +6,7 @@ namespace c20_stl{
 }
 
 int main(){
-    std::cout << c20_stl::integral_constant<int, 42>::value << '\n';
+    std::cout << "this is my first time to study stl" << std::endl;
     std::cout << "heollo world" << std::endl;
     return 0;
 }

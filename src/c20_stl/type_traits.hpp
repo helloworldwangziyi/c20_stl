@@ -21,6 +21,19 @@ struct integral_constant{
     }
 };
 
+template<bool B>
+using bool_constant = integral_constant<bool, B>;
+
+using true_type = bool_constant<true>;
+using false_type = bool_constant<false>;
+
+template <typename T, typename U>
+struct is_same : false_type{};
+
+
+template <typename T>
+struct is_same<T, T> : true_type{};
+
 }
 
 
