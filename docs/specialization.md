@@ -132,3 +132,37 @@ void f(T* p) { /* 所有指针走这里 */ }   // 重载，不是特化
 
 语法模板照抄本文第 2 节，四份全特化 + 一行 `is_void_v`，
 验收照旧用 `std::is_void_v` 当裁判。
+
+## 9. 特化里的继承：复用与答案切换
+
+主模板和特化都写作 `: 某某_type`，这里的继承承担两个职责：
+
+**代码复用**。trait 要可用至少得提供 `::value`，最好还有 `type`、
+`value_type`、bool 转换。不继承的话每个 trait 都要复制这套；而
+`true_type`/`false_type` 本身就是 `integral_constant` 预装好的
+整套答案，继承一行全部到手。
+
+**答案切换**。主模板与特化给**不同的基类**，就是在两种答案间做选择：
+
+```cpp
+template <typename T>
+struct is_void : false_type{};        // 默认：不是 void
+
+template <>
+struct is_void<void> : true_type{};   // 命中：是 void
+```
+
+实例化时编译器挑中哪份实现，`value` 就是哪份基类携带的值。
+trait 的"判断"本质是继承关系的二选一。
+
+`is_void<void>::value` 的查找链（名字查找沿继承向上爬）：
+
+```
+is_void<void>        自己没有 value
+  └─ true_type       别名 → bool_constant<true>
+       └─ integral_constant<bool, true>
+            value = true    ← 命中
+```
+
+整条链没有 virtual、没有运行时代价，是纯编译期的实现复用。
+`true_type`/`false_type` 就是为此存在的两个"预制答案"。
