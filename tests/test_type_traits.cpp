@@ -11,6 +11,12 @@ void test_traits(){
     static_assert(std::is_same_v<c20_stl::true_type::type, c20_stl::true_type>);
     static_assert(c20_stl::true_type{});
     static_assert(!c20_stl::false_type{});
+
+    // test is_same_v 
+    static_assert(c20_stl::is_same_v<c20_stl::true_type::type, c20_stl::true_type>);
+    static_assert(c20_stl::is_same_v<int, int>);
+    static_assert(!c20_stl::is_same_v<int, bool>);
+    static_assert(c20_stl::is_same_v<int,int> == std::is_same_v<int, int>);
 }
 
 void test_more_traits(){
