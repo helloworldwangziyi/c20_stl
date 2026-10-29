@@ -148,6 +148,45 @@ g++ x.o y.o -o demo
 链接成功。然后给 `flag` 加一句 `static_assert(flag);` 的变体练习：
 体会"加不加 `inline` 都和编译期求值无关，只和链接有关"。
 
+### 进阶：亲眼看到"合并成一份"
+
+链接成功只说明问题解决了，还没证明 inline 的语义。再做一步地址对比：
+
+```cpp
+// addr.hpp
+#ifndef ADDR_HPP
+#define ADDR_HPP
+inline int shared = 42;    // 预期：全程序只有一份
+static int hidden = 42;    // 预期：每个翻译单元各一份
+#endif
+```
+
+```cpp
+// a.cpp
+#include "addr.hpp"
+#include <iostream>
+int main() {
+    std::cout << &shared << '\n';
+    std::cout << &hidden << '\n';
+}
+
+// b.cpp
+#include "addr.hpp"
+#include <iostream>
+void print() {
+    std::cout << &shared << '\n';
+    std::cout << &hidden << '\n';
+}
+```
+
+两个 `.o` 链接后分别触发打印（`b.cpp` 里加一个 `extern` 声明的调用，
+或直接在 `main` 里手动跑两次对比）。结果：
+
+- `shared` 的地址**处处相等**——链接器把所有定义合并成了一个实体；
+- `hidden` 的地址**互不相同**——内部链接让每个翻译单元拥有自己的拷贝。
+
+这就是"合并"和"独立"的分界线，也是 `inline` 与 `static` 的本质区别。
+
 ## 6. 常见误解清算
 
 | 误解 | 事实 |
