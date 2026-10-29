@@ -20,7 +20,7 @@
 |---|---|---|
 | ✅ | `integral_constant` / `bool_constant` / `true_type` / `false_type` | 已完成 |
 | ✅ | `is_same` | 已完成 |
-| ⬜ | `is_same_v` 变量模板 | 把 `_v` 惯例跑通 |
+| ✅ | `is_same_v` 变量模板 | 已完成，`_v` 惯例跑通 |
 | ⬜ | `is_void`、`is_null_pointer` | `is_same` 同模克隆，热身 |
 | ⬜ | `is_const`、`is_volatile`、`remove_const`、`add_const`、`remove_volatile` | |
 | ⬜ | `remove_reference`、`add_lvalue_reference`、`add_rvalue_reference` | vector 的拷贝/移动构造离不开 |
@@ -84,3 +84,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-10-26 | 项目初始化 |
 | 2026-10-27 | `integral_constant` 及测试 |
 | 2026-10-28 | `bool_constant`/`true_type`/`false_type`、`is_same`；路线图定稿 |
+| 2026-10-29 | `is_same_v` 变量模板；补 `inline` 知识点文档 |
