@@ -37,9 +37,49 @@ template <typename T>
 struct is_same<T, T> : true_type{};
 
 template <typename T, typename U>
-constexpr inline bool is_same_v = is_same<T, U>::value;
+inline constexpr bool is_same_v = is_same<T, U>::value;
 
+template <typename T>
+struct is_void : false_type{};
 
+template <>
+struct is_void<void> : true_type{};
+
+template <>
+struct is_void<const void> : true_type{};
+
+template <>
+struct is_void<volatile void> : true_type{};
+
+template <>
+struct is_void<const volatile void> : true_type{};
+
+template <typename T>
+inline constexpr bool is_void_v = is_void<T>::value;
+
+template <typename T>
+struct is_null_pointer : false_type{};
+
+template <>
+struct is_null_pointer<decltype(nullptr)> : true_type{};
+
+template <>
+struct is_null_pointer<const decltype(nullptr)> : true_type{};
+
+template <>
+struct is_null_pointer<volatile decltype(nullptr)> : true_type{};
+
+template <>
+struct is_null_pointer<const volatile decltype(nullptr)> : true_type{};
+
+template <typename T>
+inline constexpr bool is_null_pointer_v = is_null_pointer<T>::value;
+
+template <typename T>
+struct is_const : false_type{};
+
+template <typename T>
+struct is_const<const T> : true_type{};
 
 }
 

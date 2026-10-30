@@ -17,37 +17,34 @@ void test_traits(){
     static_assert(c20_stl::is_same_v<int, int>);
     static_assert(!c20_stl::is_same_v<int, bool>);
     static_assert(c20_stl::is_same_v<int,int> == std::is_same_v<int, int>);
+
+    // is_void:四种 cv 组合 + 对照 std + 承重
+    static_assert(!c20_stl::is_void_v<int>);
+    static_assert(c20_stl::is_void_v<void>);
+    static_assert(c20_stl::is_void_v<const void>);
+    static_assert(c20_stl::is_void_v<volatile void>);
+    static_assert(c20_stl::is_void_v<const volatile void>);
+    static_assert(c20_stl::is_void_v<int> ==
+                  std::is_void_v<int>);
+    static_assert(c20_stl::is_void_v<void> ==
+                  std::is_void_v<void>);
+    static_assert(std::is_base_of_v<c20_stl::false_type,
+                                    c20_stl::is_void<int>>);
+
+    // is_null_pointer:同样配置
+    static_assert(c20_stl::is_null_pointer_v<decltype(nullptr)>);
+    static_assert(!c20_stl::is_null_pointer_v<int>);
+    static_assert(!c20_stl::is_null_pointer_v<void>);
+    static_assert(c20_stl::is_null_pointer_v<const decltype(nullptr)>);
+    static_assert(c20_stl::is_null_pointer_v<decltype(nullptr)> ==
+                  std::is_null_pointer_v<decltype(nullptr)>);
+    static_assert(std::is_base_of_v<c20_stl::false_type,
+                                    c20_stl::is_null_pointer<int>>);
 }
-
-void test_more_traits(){
-    using namespace c20_stl;
-    if(true_type{}.value == true){
-        std::cout << "test is true" << std::endl;
-    }else {
-        std::cout << "test is false" << std::endl;
-    }
-    integral_constant<int, 5>::value_type c = 100;
-    std::cout << c << std::endl;
-
-    true_type::type ic{};
-    std::cout << ic.value << std::endl;
-    // true_type{}::type<true> ic;
-
-    is_same<int, bool> ip{};
-    std::cout << ip.value << std::endl;
-
-    is_same<int, int> id {};
-    std::cout << id.value << std::endl;
-
-    is_same<int, int>::type test_id{};
-    std::cout << test_id.value << std::endl;
-}
-
 
 }
 
 int main(){
     using namespace c20_stl;
-    test_traits();
-    test_more_traits();
+    test_traits(); 
 }
