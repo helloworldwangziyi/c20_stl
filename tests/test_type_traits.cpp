@@ -40,6 +40,15 @@ void test_traits(){
                   std::is_null_pointer_v<decltype(nullptr)>);
     static_assert(std::is_base_of_v<c20_stl::false_type,
                                     c20_stl::is_null_pointer<int>>);
+
+    // is_const:重点是顶层 const 与底层 const 的分界
+    static_assert(c20_stl::is_const_v<const int>);
+    static_assert(!c20_stl::is_const_v<int>);
+    static_assert(c20_stl::is_const_v<int *const>); // 顶层:const 管指针自己
+    static_assert(!c20_stl::is_const_v<const int *>); // 底层:const 管指向的对象, 不算 
+    static_assert(c20_stl::is_const_v<int *const> == std::is_const_v<int *const>);
+    static_assert(std::is_base_of_v<c20_stl::false_type,
+                                    c20_stl::is_const<int>>);
 }
 
 }
