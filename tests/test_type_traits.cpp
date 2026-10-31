@@ -87,6 +87,18 @@ void test_traits(){
     static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int>, int>);                    // 原样放行(主模板分支)
     static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int*&>, int*>);                 // 灵魂:指针不是引用
     static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int&&>, std::remove_reference_t<int&&>>);
+
+    // test add_lvalue_reference:单主模板,引用折叠兜底
+    static_assert(c20_stl::is_same_v<c20_stl::add_lvalue_reference_t<int>, int&>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_lvalue_reference_t<int&>, int&>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_lvalue_reference_t<int&&>, int&>);   // 灵魂:右被左吸
+    // test add_rvalue_reference
+    static_assert(c20_stl::is_same_v<c20_stl::add_rvalue_reference_t<int>, int&&>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_rvalue_reference_t<int&&>, int&&>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_rvalue_reference_t<int&>, int&>);    // 灵魂:左值赢
+    // std 抽查
+    static_assert(c20_stl::is_same_v<c20_stl::add_lvalue_reference_t<int&&>, std::add_lvalue_reference_t<int&&>>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_rvalue_reference_t<int&>, std::add_rvalue_reference_t<int&>>);
 }
 
 }

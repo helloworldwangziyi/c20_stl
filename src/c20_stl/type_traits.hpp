@@ -129,6 +129,19 @@ struct remove_reference<T&&> {using type = T;};
 template <typename T>
 using remove_reference_t = typename remove_reference<T>::type;
 
+template <typename T>
+struct add_lvalue_reference {using type = T&;};
+
+template <typename T>
+using add_lvalue_reference_t = typename add_lvalue_reference<T>::type;
+
+template <typename T>
+struct add_rvalue_reference {using type = T&&;};
+
+template <typename T>
+using add_rvalue_reference_t = typename add_rvalue_reference<T>::type;
+
+
 
 }
 
