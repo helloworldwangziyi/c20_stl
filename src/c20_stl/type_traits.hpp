@@ -93,6 +93,15 @@ struct is_volatile<volatile T> : true_type{};
 template <typename T>
 inline constexpr bool is_volatile_v = is_volatile<T>::value;
 
+template <typename T>
+struct remove_const {using type = T;};
+
+template <typename T>
+struct remove_const <const T> {using type = T;};
+
+template <typename T>
+using remove_const_t = typename remove_const<T>::type;
+
 }
 
 

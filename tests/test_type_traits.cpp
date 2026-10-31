@@ -59,6 +59,12 @@ void test_traits(){
     static_assert(c20_stl::is_volatile_v<int* volatile> == std::is_volatile_v<int* volatile>);
     static_assert(std::is_base_of_v<c20_stl::false_type, c20_stl::is_volatile<int>>);
 
+
+    // test remove_const
+    static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<const int>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<const int*>, const int*>);
+    static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<int>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<const int*>, std::remove_const_t<const int*>>);
 }
 
 }
