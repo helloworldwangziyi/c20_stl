@@ -25,7 +25,7 @@
 | ✅ | `is_const`、`is_volatile` | 顶层/底层判定及测试 |
 | ✅ | `remove_const` | 变换型 trait 首个，含完整测试矩阵 |
 | ✅ | `add_const` | 单主模板，无需偏特化 |
-| ⬜ | `remove_volatile` | `remove_const` 的换字克隆 |
+| ✅ | `remove_volatile` | `remove_const` 的换字克隆 |
 | ⬜ | `remove_reference`、`add_lvalue_reference`、`add_rvalue_reference` | vector 的拷贝/移动构造离不开 |
 | ⬜ | `is_array`、`rank`、`extent` | |
 | ⬜ | `conditional`、`enable_if` | |
@@ -92,3 +92,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-10-31 | `is_const`/`is_volatile` 毕业；顶层/底层 const 文档（钥匙与封条） |
 | 2026-11-01 | `remove_const` 首个变换型 trait（实现 + 测试矩阵）；确立 AGENTS.md 教学约定 |
 | 2026-11-02 | `add_const`（单主模板）；cv 家族混测边角补齐 |
+| 2026-11-03 | `remove_volatile` 毕业；`typename` 依赖名原理吃透 |
