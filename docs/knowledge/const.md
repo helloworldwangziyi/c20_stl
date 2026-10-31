@@ -61,3 +61,73 @@ static_assert(!c20_stl::is_const_v<const int *>);  // false:对象是普通指�
 所以 `is_const` 不算数。要探测底层 const，得对"去掉一层指针之后的
 类型"再调 `is_const`——这正是 `remove_pointer` + `is_const` 组合的
 经典用途，也是后续 trait 的积木玩法。
+
+
+---
+
+## 5. 为什么语言要区分这两种 const：钥匙与封条
+
+**指针是一把钥匙，指向的对象是房间，const 就是焊条。**
+
+- `int *const p`：钥匙焊死在钥匙环上——不能拿它开别的门（改指向 ❌），
+  但它能开的那间房随便折腾（改值 ✅）。锁的是**钥匙本身**。
+- `const int *q`：房间贴了"展品勿动"——钥匙随便换门（改指向 ✅），
+  进门后什么都不能碰（改值 ❌）。锁的是**房间**。
+
+### 顶层 const = 私事，不传给别人
+
+给自家钥匙焊环纯属个人防丢习惯。别人配一把同款钥匙（拷贝），拿到的
+就是普通钥匙——焊法传不出去。所以语言干脆不记录它：
+
+- 函数类型里没有顶层 const：`void f(int*)` 与 `void f(int* const)`
+  是同一个函数（编译报 redefinition）；
+- 模板按值拷贝/推导时顶层 cv 被自动剥掉。
+
+```cpp
+template<class T> void what(T) { std::cout << std::is_const_v<T> << '\n'; }
+const int x = 1;
+int* const p = nullptr;
+what(x);              // T = int   → 0（顶层被剥）
+what(p);              // T = int*  → 0（顶层被剥）
+what<const int>(x);   // 显式指定，T 原样保留 → 1
+```
+
+### 底层 const = 对象的公约，谁拿钥匙谁遵守
+
+"这个对象不许改"是对象的公共属性，因此它写进类型身份：
+
+- `void g(int*)` 与 `void g(const int*)` 是**两个真函数**（合法重载）；
+- 转换单向：`int*` → `const int*` 随意（贴封条永远安全），
+  反向非法（撕封条 = 毁约）。
+
+撕封条为什么必须禁止：
+
+```cpp
+const int x = 42;   // 博物馆签了"永不改建"合同
+const int* p = &x;  // 你拿的是参观证
+int* q = p;         // 若允许：参观证换施工证
+*q = 0;             // 拆博物馆，合同成废纸 → 编译器直接禁止这步
+// error: invalid conversion from 'const int*' to 'int*'
+```
+
+底层 const 就是 const 正确性的守门员：保证"承诺只读"的对象不会被
+任何路径偷偷改写。
+
+## 6. 一句话总结
+
+**顶层 const 管钥匙的主人（私事，随拷贝消失，不入类型身份）；
+底层 const 管房间的合约（公事，跟着类型走，写入类型身份）。**
+
+## 7. 对 trait 的意义
+
+类型是一棵树：`int* const` 的 const 焊在**大门口**，`const int*` 的
+const 焊在**屋里**。`is_const` 是只看大门口的保安：
+
+```cpp
+static_assert( c20_stl::is_const_v<int *const>);   // 封条在门口 → true
+static_assert(!c20_stl::is_const_v<const int *>);  // 封条在屋里 → 管不着
+```
+
+而 `remove_const_t<const int*>` 必须**原样返回**：若连屋里的封条也撕，
+等于替陌生人撬锁——const 安全模型当场破产。这对测试守护的不只是
+实现正确，是整个类型系统的安全承诺。
