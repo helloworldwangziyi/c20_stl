@@ -84,6 +84,15 @@ struct is_const<const T> : true_type{};
 template <typename T>
 inline constexpr bool is_const_v = is_const<T>::value;
 
+template <typename T>
+struct is_volatile : false_type{};
+
+template <typename T>
+struct is_volatile<volatile T> : true_type{};
+
+template <typename T>
+inline constexpr bool is_volatile_v = is_volatile<T>::value;
+
 }
 
 
