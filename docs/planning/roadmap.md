@@ -26,7 +26,7 @@
 | ✅ | `remove_const` | 变换型 trait 首个，含完整测试矩阵 |
 | ✅ | `add_const` | 单主模板，无需偏特化 |
 | ✅ | `remove_volatile` | `remove_const` 的换字克隆 |
-| ⬜ | `remove_reference`、`add_lvalue_reference`、`add_rvalue_reference` | vector 的拷贝/移动构造离不开 |
+| ⬜ | `add_lvalue_reference`、`add_rvalue_reference` | `remove_reference` 已毕业 |
 | ⬜ | `is_array`、`rank`、`extent` | |
 | ⬜ | `conditional`、`enable_if` | |
 | ⬜ | 类型清单手写 `is_integral`、`is_floating_point`、`is_arithmetic`、`is_signed` | 进阶一试，不碰内建（libstdc++ 同款做法） |
@@ -93,3 +93,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-01 | `remove_const` 首个变换型 trait（实现 + 测试矩阵）；确立 AGENTS.md 教学约定 |
 | 2026-11-02 | `add_const`（单主模板）；cv 家族混测边角补齐 |
 | 2026-11-03 | `remove_volatile` 毕业；`typename` 依赖名原理吃透 |
+| 2026-11-04 | `remove_reference` 毕业；补引用/typename 笔记；OOP 系列文档（10 篇） |
