@@ -64,7 +64,16 @@ void test_traits(){
     static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<const int>, int>);
     static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<const int*>, const int*>);
     static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<int>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<const volatile int>, volatile int>);  // 只剥 const,留 volatile
     static_assert(c20_stl::is_same_v<c20_stl::remove_const_t<const int*>, std::remove_const_t<const int*>>);
+
+    // test add_const
+
+    static_assert(c20_stl::is_same_v<c20_stl::add_const_t<int>, const int>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_const_t<int>, std::add_const_t<int>>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_const_t<const int>, const int>);
+    static_assert(c20_stl::is_same_v<c20_stl::add_const_t<volatile int>, const volatile int>);  // 加在已有 volatile 的顶层
+
 }
 
 }
