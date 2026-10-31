@@ -23,7 +23,8 @@
 | ✅ | `is_same_v` 变量模板 | 已完成，`_v` 惯例跑通 |
 | ✅ | `is_void`、`is_null_pointer` | 含 cv 四组合特化及测试 |
 | ✅ | `is_const`、`is_volatile` | 顶层/底层判定及测试 |
-| ⬜ | `remove_const`、`add_const`、`remove_volatile` | 变换型 trait 开端 |
+| ✅ | `remove_const` | 变换型 trait 首个,含完整测试矩阵 |
+| ⬜ | `add_const`、`remove_volatile` | 变换型同族 |
 | ⬜ | `remove_reference`、`add_lvalue_reference`、`add_rvalue_reference` | vector 的拷贝/移动构造离不开 |
 | ⬜ | `is_array`、`rank`、`extent` | |
 | ⬜ | `conditional`、`enable_if` | |
@@ -88,3 +89,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-10-29 | `is_same_v` 变量模板；补 `inline` 知识点文档 |
 | 2026-10-30 | `is_void`/`is_null_pointer` 补 cv 特化及测试；`is_const` 偏特化（待补测试） |
 | 2026-10-31 | `is_const`/`is_volatile` 毕业；顶层/底层 const 文档（钥匙与封条） |
+| 2026-11-01 | `remove_const` 首个变换型 trait（实现 + 测试矩阵）；确立 AGENTS.md 教学约定 |
