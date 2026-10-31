@@ -80,6 +80,13 @@ void test_traits(){
     static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<int>, int>);                      // 原样放行(主模板分支)
     static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<const volatile int>, const int>); // 只剥 volatile,留 const
     static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<volatile int*>, std::remove_volatile_t<volatile int*>>);
+
+    // test remove_reference
+    static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int&>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int&&>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int>, int>);                    // 原样放行(主模板分支)
+    static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int*&>, int*>);                 // 灵魂:指针不是引用
+    static_assert(c20_stl::is_same_v<c20_stl::remove_reference_t<int&&>, std::remove_reference_t<int&&>>);
 }
 
 }
