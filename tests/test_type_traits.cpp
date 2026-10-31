@@ -74,6 +74,12 @@ void test_traits(){
     static_assert(c20_stl::is_same_v<c20_stl::add_const_t<const int>, const int>);
     static_assert(c20_stl::is_same_v<c20_stl::add_const_t<volatile int>, const volatile int>);  // 加在已有 volatile 的顶层
 
+    // test remove_volatile
+    static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<volatile int>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<volatile int*>, volatile int*>);  // 灵魂:底层 volatile 不动
+    static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<int>, int>);                      // 原样放行(主模板分支)
+    static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<const volatile int>, const int>); // 只剥 volatile,留 const
+    static_assert(c20_stl::is_same_v<c20_stl::remove_volatile_t<volatile int*>, std::remove_volatile_t<volatile int*>>);
 }
 
 }

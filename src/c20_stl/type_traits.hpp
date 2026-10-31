@@ -108,6 +108,15 @@ struct add_const {using type = const T; };
 template <typename T>
 using add_const_t = typename add_const<T>::type;
 
+template <typename T>
+struct remove_volatile { using type = T;};
+
+template <typename T>
+struct remove_volatile<volatile T> {using type = T;};
+
+template <typename T>
+using remove_volatile_t = typename remove_volatile<T>::type;
+
 }
 
 
