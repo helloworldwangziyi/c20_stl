@@ -18,7 +18,7 @@ unordered_map、unordered_set、basic_string）+ 核心算法库（排序/查找
 
 ---
 
-## 阶段一：type_traits 手写核心（收官倒计时）
+## 阶段一：type_traits 手写核心（已完成）
 
 | 状态 | 内容 | 备注 |
 |---|---|---|
@@ -36,7 +36,8 @@ unordered_map、unordered_set、basic_string）+ 核心算法库（排序/查找
 | ✅ | `extent` | 查询指定维度的长度，含未知长度、多维与越界测试 |
 | ✅ | `conditional` | 编译期类型二选一，含双向选择与 std 对照 |
 | ✅ | `enable_if` | `true` 提供类型、`false` 触发 SFINAE，含重载选择测试 |
-| ⬜ | 类型清单手写 `is_integral`、`is_floating_point`、`is_arithmetic`、`is_signed` | 进阶一试，不碰内建 |
+| ✅ | 类型清单手写 `is_integral` | C++20 标准整数类型 + cv 转发，不碰内建 |
+| ✅ | `is_floating_point`、`is_arithmetic`、`is_signed` | 浮点清单、算术组合、有符号值判定，含 std 对照 |
 
 ## 阶段二：内存与构造（容器前置件）
 
@@ -136,3 +137,5 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-01 | `extent` 毕业：数组三件套完成，覆盖多维、未知长度与越界维度 |
 | 2026-11-01 | `conditional` 毕业：通过主模板/false 偏特化完成编译期类型选择 |
 | 2026-11-01 | `enable_if` 毕业：理解并验证 SFINAE 重载退出机制 |
+| 2026-11-01 | `is_integral` 毕业：手写 C++20 标准整数类型清单与 cv 转发 |
+| 2026-11-01 | 数值分类 trait 补齐，**阶段一完成**；下一阶段进入内存与对象构造 |

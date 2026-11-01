@@ -206,6 +206,115 @@ struct enable_if<true, T>{
 template <bool N, typename T = void>
 using enable_if_t = typename enable_if<N, T>::type;
 
+template <typename T>
+struct is_integral : false_type{};
+
+template <>
+struct is_integral<bool> : true_type{};
+
+template <>
+struct is_integral<char> : true_type{};
+
+template <>
+struct is_integral<signed char> : true_type{};
+
+template <>
+struct is_integral<unsigned char> : true_type{};
+
+template <>
+struct is_integral<wchar_t> : true_type{};
+
+template <>
+struct is_integral<char8_t> : true_type{};
+
+template <>
+struct is_integral<char16_t> : true_type{};
+
+template <>
+struct is_integral<char32_t> : true_type{};
+
+template <>
+struct is_integral<short> : true_type{};
+
+template <>
+struct is_integral<unsigned short> : true_type{};
+
+template <>
+struct is_integral<int> : true_type{};
+
+template <>
+struct is_integral<unsigned int> : true_type{};
+
+template <>
+struct is_integral<long> : true_type{};
+
+template <>
+struct is_integral<unsigned long> : true_type{};
+
+template <>
+struct is_integral<long long> : true_type{};
+
+template <>
+struct is_integral<unsigned long long> : true_type{};
+
+template <typename T>
+struct is_integral<const T> : is_integral<T>{};
+
+template <typename T>
+struct is_integral<volatile T> : is_integral<T>{};
+
+template <typename T>
+struct is_integral<const volatile T> : is_integral<T>{};
+
+template <typename T>
+inline constexpr bool is_integral_v = is_integral<T>::value;
+
+template <typename T>
+struct is_floating_point : false_type{};
+
+template <>
+struct is_floating_point<float> : true_type{};
+
+template <>
+struct is_floating_point<double> : true_type{};
+
+template <>
+struct is_floating_point<long double> : true_type{};
+
+template <typename T>
+struct is_floating_point<const T> : is_floating_point<T>{};
+
+template <typename T>
+struct is_floating_point<volatile T> : is_floating_point<T>{};
+
+template <typename T>
+struct is_floating_point<const volatile T> : is_floating_point<T>{};
+
+template <typename T>
+inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
+
+template <typename T>
+struct is_arithmetic : bool_constant<is_integral_v<T> || is_floating_point_v<T>>{};
+
+template <typename T>
+inline constexpr bool is_arithmetic_v = is_arithmetic<T>::value;
+
+namespace detail{
+
+template <typename T, bool = is_arithmetic_v<T>>
+struct is_signed_helper : false_type{};
+
+template <typename T>
+struct is_signed_helper<T, true> : bool_constant<(T(-1) < T(0))>{};
+
+}
+
+template <typename T>
+struct is_signed : detail::is_signed_helper<T>::type{};
+
+template <typename T>
+inline constexpr bool is_signed_v = is_signed<T>::value;
+
 }
 
 

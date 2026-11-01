@@ -183,6 +183,107 @@ void test_traits(){
     static_assert(test_enable_if_select(42) == 1);
     static_assert(test_enable_if_select(3.14) == 2);
 
+    // test is_integral:覆盖 C++20 标准整数类型
+    static_assert(c20_stl::is_integral_v<bool>);
+    static_assert(c20_stl::is_integral_v<char>);
+    static_assert(c20_stl::is_integral_v<signed char>);
+    static_assert(c20_stl::is_integral_v<unsigned char>);
+    static_assert(c20_stl::is_integral_v<wchar_t>);
+    static_assert(c20_stl::is_integral_v<char8_t>);
+    static_assert(c20_stl::is_integral_v<char16_t>);
+    static_assert(c20_stl::is_integral_v<char32_t>);
+    static_assert(c20_stl::is_integral_v<short>);
+    static_assert(c20_stl::is_integral_v<unsigned short>);
+    static_assert(c20_stl::is_integral_v<int>);
+    static_assert(c20_stl::is_integral_v<unsigned int>);
+    static_assert(c20_stl::is_integral_v<long>);
+    static_assert(c20_stl::is_integral_v<unsigned long>);
+    static_assert(c20_stl::is_integral_v<long long>);
+    static_assert(c20_stl::is_integral_v<unsigned long long>);
+
+    // cv 限定不改变整数身份
+    static_assert(c20_stl::is_integral_v<const int>);
+    static_assert(c20_stl::is_integral_v<volatile int>);
+    static_assert(c20_stl::is_integral_v<const volatile int>);
+
+    // 浮点数、指针、引用、void 都不是整数类型
+    static_assert(!c20_stl::is_integral_v<float>);
+    static_assert(!c20_stl::is_integral_v<double>);
+    static_assert(!c20_stl::is_integral_v<int*>);
+    static_assert(!c20_stl::is_integral_v<int&>);
+    static_assert(!c20_stl::is_integral_v<void>);
+
+    // std 裁判:字符类型、cv、负例、引用各抽查一次
+    static_assert(c20_stl::is_integral_v<char8_t> == std::is_integral_v<char8_t>);
+    static_assert(c20_stl::is_integral_v<const volatile long long> ==
+                  std::is_integral_v<const volatile long long>);
+    static_assert(c20_stl::is_integral_v<double> == std::is_integral_v<double>);
+    static_assert(c20_stl::is_integral_v<int&> == std::is_integral_v<int&>);
+
+    // test is_floating_point
+    static_assert(c20_stl::is_floating_point_v<float>);
+    static_assert(c20_stl::is_floating_point_v<double>);
+    static_assert(c20_stl::is_floating_point_v<long double>);
+    static_assert(c20_stl::is_floating_point_v<const float>);
+    static_assert(c20_stl::is_floating_point_v<volatile double>);
+    static_assert(c20_stl::is_floating_point_v<const volatile long double>);
+    static_assert(!c20_stl::is_floating_point_v<int>);
+    static_assert(!c20_stl::is_floating_point_v<float&>);
+    static_assert(!c20_stl::is_floating_point_v<double*>);
+    static_assert(!c20_stl::is_floating_point_v<void>);
+    static_assert(c20_stl::is_floating_point_v<const volatile long double> ==
+                  std::is_floating_point_v<const volatile long double>);
+    static_assert(c20_stl::is_floating_point_v<int> == std::is_floating_point_v<int>);
+
+    // test is_arithmetic:整数或浮点数都属于算术类型
+    static_assert(c20_stl::is_arithmetic_v<int>);
+    static_assert(c20_stl::is_arithmetic_v<unsigned long long>);
+    static_assert(c20_stl::is_arithmetic_v<float>);
+    static_assert(c20_stl::is_arithmetic_v<const double>);
+    static_assert(c20_stl::is_arithmetic_v<volatile long double>);
+    static_assert(!c20_stl::is_arithmetic_v<void>);
+    static_assert(!c20_stl::is_arithmetic_v<int*>);
+    static_assert(!c20_stl::is_arithmetic_v<int&>);
+    static_assert(!c20_stl::is_arithmetic_v<c20_stl::true_type>);
+    static_assert(c20_stl::is_arithmetic_v<const volatile long double> ==
+                  std::is_arithmetic_v<const volatile long double>);
+    static_assert(c20_stl::is_arithmetic_v<int*> == std::is_arithmetic_v<int*>);
+
+    // test is_signed:有符号整数和浮点数为 true
+    static_assert(c20_stl::is_signed_v<signed char>);
+    static_assert(c20_stl::is_signed_v<short>);
+    static_assert(c20_stl::is_signed_v<int>);
+    static_assert(c20_stl::is_signed_v<long>);
+    static_assert(c20_stl::is_signed_v<long long>);
+    static_assert(c20_stl::is_signed_v<float>);
+    static_assert(c20_stl::is_signed_v<double>);
+    static_assert(c20_stl::is_signed_v<long double>);
+    static_assert(c20_stl::is_signed_v<const int>);
+    static_assert(c20_stl::is_signed_v<const volatile double>);
+
+    static_assert(!c20_stl::is_signed_v<bool>);
+    static_assert(!c20_stl::is_signed_v<unsigned char>);
+    static_assert(!c20_stl::is_signed_v<unsigned short>);
+    static_assert(!c20_stl::is_signed_v<unsigned int>);
+    static_assert(!c20_stl::is_signed_v<unsigned long>);
+    static_assert(!c20_stl::is_signed_v<unsigned long long>);
+    static_assert(!c20_stl::is_signed_v<char8_t>);
+    static_assert(!c20_stl::is_signed_v<char16_t>);
+    static_assert(!c20_stl::is_signed_v<char32_t>);
+    static_assert(!c20_stl::is_signed_v<void>);
+    static_assert(!c20_stl::is_signed_v<int*>);
+    static_assert(!c20_stl::is_signed_v<int&>);
+    static_assert(!c20_stl::is_signed_v<c20_stl::true_type>);
+
+    // char/wchar_t 的符号由平台决定,必须让 std 当裁判
+    static_assert(c20_stl::is_signed_v<char> == std::is_signed_v<char>);
+    static_assert(c20_stl::is_signed_v<wchar_t> == std::is_signed_v<wchar_t>);
+    static_assert(c20_stl::is_signed_v<unsigned int> == std::is_signed_v<unsigned int>);
+    static_assert(c20_stl::is_signed_v<const volatile double> ==
+                  std::is_signed_v<const volatile double>);
+    static_assert(c20_stl::is_signed_v<c20_stl::true_type> ==
+                  std::is_signed_v<c20_stl::true_type>);
+
 }
 
 }
