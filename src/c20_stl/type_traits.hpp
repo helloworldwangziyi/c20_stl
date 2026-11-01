@@ -155,7 +155,17 @@ struct is_array<T[]> : true_type{};
 template <typename T>
 inline constexpr bool is_array_v = is_array<T>::value;
 
+template <typename T>
+struct rank : integral_constant<std::size_t, 0>{};
 
+template <typename T>
+struct rank<T[]> : integral_constant<std::size_t, 1 + rank<T>::value>{};
+
+template <typename T, std::size_t N>
+struct rank<T[N]> : integral_constant<std::size_t, 1 + rank<T>::value>{};
+
+template <typename T>
+inline constexpr std::size_t rank_v = rank<T>::value;
 
 }
 

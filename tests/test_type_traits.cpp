@@ -113,6 +113,21 @@ void test_traits(){
     static_assert(c20_stl::is_array_v<int[2][3]> == std::is_array_v<int[2][3]>);
     static_assert(c20_stl::is_array_v<int*> == std::is_array_v<int*>);
 
+    // test rank
+    static_assert(c20_stl::rank_v<int[]> == 1);
+    static_assert(c20_stl::rank_v<int> == 0);
+    static_assert(c20_stl::rank_v<int*> == 0);
+    static_assert(c20_stl::rank_v<int[3]> == 1);
+    static_assert(c20_stl::rank_v<int[2][3]> == 2);
+    static_assert(c20_stl::rank_v<int[2][3][4]> == 3);
+    static_assert(c20_stl::rank_v<int*[3]> == 1);
+    static_assert(c20_stl::rank_v<int(*)[3]> == 0);
+
+    // std 裁判:未知长度数组、多维数组、数组指针各抽查一次
+    static_assert(c20_stl::rank_v<int[]> == std::rank_v<int[]>);
+    static_assert(c20_stl::rank_v<int[2][3][4]> == std::rank_v<int[2][3][4]>);
+    static_assert(c20_stl::rank_v<int(*)[3]> == std::rank_v<int(*)[3]>);
+
 }
 
 }
