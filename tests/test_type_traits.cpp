@@ -5,6 +5,17 @@
 
 namespace c20_stl{
 
+template <typename T>
+constexpr c20_stl::enable_if_t<c20_stl::is_same_v<T, int>, int>
+test_enable_if_select(T) {
+    return 1;
+}
+
+template <typename T>
+constexpr c20_stl::enable_if_t<!c20_stl::is_same_v<T, int>, int>
+test_enable_if_select(T) {
+    return 2;
+}
 
 void test_traits(){
     // 嵌套类型要用 :: 访问(此处非模板上下文,不需要 typename)
@@ -161,6 +172,16 @@ void test_traits(){
                                      std::conditional_t<true, int, bool>>);
     static_assert(c20_stl::is_same_v<c20_stl::conditional_t<false, int, bool>,
                                      std::conditional_t<false, int, bool>>);
+
+    // test enable_if
+    static_assert(c20_stl::is_same_v<c20_stl::enable_if_t<true>, void>);
+    static_assert(c20_stl::is_same_v<c20_stl::enable_if_t<true, int>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::enable_if_t<true, int>,
+                                     std::enable_if_t<true, int>>);
+
+    // SFINAE:int 候选与非 int 候选各退出一次,留下的函数给出不同答案
+    static_assert(test_enable_if_select(42) == 1);
+    static_assert(test_enable_if_select(3.14) == 2);
 
 }
 

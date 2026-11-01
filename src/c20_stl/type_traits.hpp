@@ -193,6 +193,19 @@ template <bool N, typename T, typename U>
 using conditional_t = typename conditional<N, T ,U>::type;
 
 
+// SFINAE 机制 替换失败不是错误
+template <bool N, typename T = void>
+struct enable_if{
+};
+
+template <typename T>
+struct enable_if<true, T>{
+    using type = T;
+};
+
+template <bool N, typename T = void>
+using enable_if_t = typename enable_if<N, T>::type;
+
 }
 
 
