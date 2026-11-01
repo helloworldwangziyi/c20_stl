@@ -167,6 +167,18 @@ struct rank<T[N]> : integral_constant<std::size_t, 1 + rank<T>::value>{};
 template <typename T>
 inline constexpr std::size_t rank_v = rank<T>::value;
 
+template <typename T, unsigned Dim = 0>
+struct extent : integral_constant<std::size_t, 0>{};
+
+template <typename T, unsigned Dim>
+struct extent<T[],Dim> : integral_constant<std::size_t, (Dim == 0 ? 0 : extent<T, Dim - 1>::value)>{};
+
+template <typename T, std::size_t N, unsigned Dim>
+struct extent<T[N], Dim> : integral_constant<std::size_t, (Dim == 0 ? N : extent<T, Dim - 1>::value)>{};
+
+template <typename T, unsigned Dim = 0>
+inline constexpr std::size_t extent_v = extent<T, Dim>::value;
+
 }
 
 

@@ -128,6 +128,27 @@ void test_traits(){
     static_assert(c20_stl::rank_v<int[2][3][4]> == std::rank_v<int[2][3][4]>);
     static_assert(c20_stl::rank_v<int(*)[3]> == std::rank_v<int(*)[3]>);
 
+    // test extent
+    static_assert(c20_stl::extent<int[3]>::value == 3);  // 类模板默认查询第 0 维
+    static_assert(c20_stl::extent_v<int> == 0);
+    static_assert(c20_stl::extent_v<int*> == 0);
+    static_assert(c20_stl::extent_v<int[3]> == 3);
+    static_assert(c20_stl::extent_v<int[3], 1> == 0);     // 维度越界返回 0
+    static_assert(c20_stl::extent_v<int[]> == 0);         // 当前维长度未知
+    static_assert(c20_stl::extent_v<int[2][3]> == 2);
+    static_assert(c20_stl::extent_v<int[2][3], 1> == 3);
+    static_assert(c20_stl::extent_v<int[2][3], 2> == 0);
+    static_assert(c20_stl::extent_v<int[][3]> == 0);
+    static_assert(c20_stl::extent_v<int[][3], 1> == 3);   // 外层未知,内层仍可查询
+    static_assert(c20_stl::extent_v<int*[3]> == 3);
+    static_assert(c20_stl::extent_v<int(*)[3]> == 0);
+
+    // std 裁判:定长、多维、未知长度数组、数组指针各抽查一次
+    static_assert(c20_stl::extent_v<int[3]> == std::extent_v<int[3]>);
+    static_assert(c20_stl::extent_v<int[2][3], 1> == std::extent_v<int[2][3], 1>);
+    static_assert(c20_stl::extent_v<int[][3], 1> == std::extent_v<int[][3], 1>);
+    static_assert(c20_stl::extent_v<int(*)[3]> == std::extent_v<int(*)[3]>);
+
 }
 
 }
