@@ -18,6 +18,7 @@ enable_testing()
 set(TEST_SOURCES
     smoke_test
     test_type_traits
+    test_memory
 )
 
 foreach(name IN LISTS TEST_SOURCES)
