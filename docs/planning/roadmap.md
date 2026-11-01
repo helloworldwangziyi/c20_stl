@@ -31,7 +31,8 @@ unordered_map、unordered_set、basic_string）+ 核心算法库（排序/查找
 | ✅ | `remove_volatile` | `remove_const` 的换字克隆 |
 | ✅ | `remove_reference` | 双偏特化（`T&`/`T&&`） |
 | ✅ | `add_lvalue_reference`、`add_rvalue_reference` | 单主模板，引用折叠兜底 |
-| ⬜ | `is_array`、`rank`、`extent` | 偏特化 `T[N]` / `T[]` 登场 |
+| ✅ | `is_array` | 偏特化 `T[N]` / `T[]`，含多维数组与指针反例 |
+| ⬜ | `rank`、`extent` | 数组维度与长度，递归剥维 |
 | ⬜ | `conditional`、`enable_if` | 元编程两个开关 |
 | ⬜ | 类型清单手写 `is_integral`、`is_floating_point`、`is_arithmetic`、`is_signed` | 进阶一试，不碰内建 |
 
@@ -128,3 +129,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-03 | `remove_volatile` 毕业；`typename` 依赖名原理吃透 |
 | 2026-11-04 | `remove_reference` 毕业；引用/typename 笔记；OOP 系列文档；**目标重定标 MyTinySTL，路线图重排** |
 | 2026-11-04 | `add_lvalue_reference`/`add_rvalue_reference` 毕业（引用折叠） |
+| 2026-11-01 | `is_array` 毕业：覆盖定长/不定长、多维数组与指针反例 |

@@ -99,6 +99,20 @@ void test_traits(){
     // std 抽查
     static_assert(c20_stl::is_same_v<c20_stl::add_lvalue_reference_t<int&&>, std::add_lvalue_reference_t<int&&>>);
     static_assert(c20_stl::is_same_v<c20_stl::add_rvalue_reference_t<int&>, std::add_rvalue_reference_t<int&>>);
+
+    // test is_array
+    static_assert(c20_stl::is_array_v<int[]>);
+    static_assert(c20_stl::is_array_v<int[3]>);
+    static_assert(c20_stl::is_array_v<int[2][3]>);       // 多维数组也算数组
+    static_assert(!c20_stl::is_array_v<int>);
+    static_assert(!c20_stl::is_array_v<int*>);
+    static_assert(!c20_stl::is_array_v<int(*)[3]>);      // 灵魂:指向数组的指针仍不是数组
+
+    // std 裁判:未知长度数组、多维数组、指针各抽查一次
+    static_assert(c20_stl::is_array_v<int[]> == std::is_array_v<int[]>);
+    static_assert(c20_stl::is_array_v<int[2][3]> == std::is_array_v<int[2][3]>);
+    static_assert(c20_stl::is_array_v<int*> == std::is_array_v<int*>);
+
 }
 
 }
