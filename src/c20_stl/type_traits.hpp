@@ -179,6 +179,20 @@ struct extent<T[N], Dim> : integral_constant<std::size_t, (Dim == 0 ? N : extent
 template <typename T, unsigned Dim = 0>
 inline constexpr std::size_t extent_v = extent<T, Dim>::value;
 
+template <bool N, typename T, typename U>
+struct conditional {
+    using type = T;
+};
+
+template <typename T ,typename U>
+struct conditional<false, T, U>{
+    using type = U;
+};
+
+template <bool N, typename T, typename U>
+using conditional_t = typename conditional<N, T ,U>::type;
+
+
 }
 
 

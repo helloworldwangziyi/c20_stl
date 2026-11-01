@@ -34,7 +34,8 @@ unordered_map、unordered_set、basic_string）+ 核心算法库（排序/查找
 | ✅ | `is_array` | 偏特化 `T[N]` / `T[]`，含多维数组与指针反例 |
 | ✅ | `rank` | 已知/未知长度数组的递归维度计算，含 std 对照 |
 | ✅ | `extent` | 查询指定维度的长度，含未知长度、多维与越界测试 |
-| ⬜ | `conditional`、`enable_if` | 元编程两个开关 |
+| ✅ | `conditional` | 编译期类型二选一，含双向选择与 std 对照 |
+| ⬜ | `enable_if` | 通过 SFINAE 控制模板是否参与 |
 | ⬜ | 类型清单手写 `is_integral`、`is_floating_point`、`is_arithmetic`、`is_signed` | 进阶一试，不碰内建 |
 
 ## 阶段二：内存与构造（容器前置件）
@@ -133,3 +134,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-01 | `is_array` 毕业：覆盖定长/不定长、多维数组与指针反例 |
 | 2026-11-01 | `rank` 毕业：编译期递归计算数组维度，覆盖指针/数组差异 |
 | 2026-11-01 | `extent` 毕业：数组三件套完成，覆盖多维、未知长度与越界维度 |
+| 2026-11-01 | `conditional` 毕业：通过主模板/false 偏特化完成编译期类型选择 |

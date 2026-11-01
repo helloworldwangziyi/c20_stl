@@ -149,6 +149,19 @@ void test_traits(){
     static_assert(c20_stl::extent_v<int[][3], 1> == std::extent_v<int[][3], 1>);
     static_assert(c20_stl::extent_v<int(*)[3]> == std::extent_v<int(*)[3]>);
 
+    // test conditional
+    static_assert(c20_stl::is_same_v<c20_stl::conditional_t<true, int, bool>, int>);
+    static_assert(c20_stl::is_same_v<c20_stl::conditional_t<false, int, bool>, bool>);
+
+    static_assert(c20_stl::is_same_v<c20_stl::conditional_t<true, void, int>, void>);
+    static_assert(c20_stl::is_same_v<c20_stl::conditional_t<true, int*, int>, int *>);
+
+    // std 裁判:两个选择方向各对照一次
+    static_assert(c20_stl::is_same_v<c20_stl::conditional_t<true, int, bool>,
+                                     std::conditional_t<true, int, bool>>);
+    static_assert(c20_stl::is_same_v<c20_stl::conditional_t<false, int, bool>,
+                                     std::conditional_t<false, int, bool>>);
+
 }
 
 }
