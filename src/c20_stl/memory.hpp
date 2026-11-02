@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <new>
+#include <utility>
 
 namespace c20_stl{
 
@@ -24,6 +25,16 @@ public:
         ::operator delete(p);
     }
 };
+
+template <typename T, typename ...Args>
+T* construct_at(T* p, Args&&... args){
+    return new (p) T(std::forward<Args>(args)...);
+}
+
+template <typename T>
+void destroy_at(T* p){
+    p->~T();
+}
 
 }
 
