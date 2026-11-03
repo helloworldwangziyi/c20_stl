@@ -44,7 +44,7 @@ unordered_map、unordered_set、basic_string）+ 核心算法库（排序/查找
 vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具：
 
 - ✅ `allocator` 基础版：`operator new/delete` 封装，验证分配/释放不构造或析构对象
-- ⬜ `construct_at` / `destroy_at`（placement new + 显式析构调用）
+- ✅ `construct_at` / `destroy_at`：placement new + 显式析构，含参数转发与 std 对照
 - ⬜ `uninitialized_copy` / `uninitialized_fill` / `uninitialized_move`
 - ⬜ 计数类型测试工具（构造/析构次数、拷贝/移动追踪）——写 vector 时一直用
 - ⬜ 进阶选做：内存池（MyTinySTL `alloc.h` 对应物，自由链表按 size 分级）
@@ -141,3 +141,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-01 | 数值分类 trait 补齐，**阶段一完成**；下一阶段进入内存与对象构造 |
 | 2026-11-01 | **阶段二启动**：建立 `memory` 模块与独立测试目标 |
 | 2026-11-01 | `allocator` 基础版毕业：原始内存分配/释放，构造与析构计数为零 |
+| 2026-11-03 | `construct_at`/`destroy_at` 毕业：验证参数转发与对象生命周期 |
