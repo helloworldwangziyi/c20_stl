@@ -36,6 +36,13 @@ void destroy_at(T* p){
     p->~T();
 }
 
+template <typename ForwardIt, typename T>
+void uninitialized_fill(ForwardIt first, ForwardIt last, const T& value){
+    for (; first != last; ++first) {
+        construct_at(&*first, value);
+    }
+}
+
 }
 
 #endif

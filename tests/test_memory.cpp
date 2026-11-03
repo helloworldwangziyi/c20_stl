@@ -8,6 +8,8 @@ namespace c20_stl{
 struct test_counted_object {
     static inline int constructions = 0;
     static inline int destructions = 0;
+    static inline int copies = 0;
+    static inline int moves = 0;
 
     int value;
 
@@ -19,6 +21,18 @@ struct test_counted_object {
     explicit test_counted_object(int v)
         : value(v){
         ++constructions;
+    }
+
+    test_counted_object(const test_counted_object& other)
+        : value(other.value){
+        ++constructions;
+        ++copies;
+    }
+
+    test_counted_object(test_counted_object&& other) noexcept
+        : value(other.value){
+        ++constructions;
+        ++moves;
     }
 
     ~test_counted_object(){
@@ -89,9 +103,70 @@ void test_construct_destroy(){
     assert(test_counted_object::destructions == 2);
 }
 
+void test_uninitialized_fill(){
+    test_counted_object::constructions = 0;
+    test_counted_object::destructions = 0;
+    test_counted_object::copies = 0;
+    test_counted_object::moves = 0;
+
+    allocator<test_counted_object> allocator;
+    test_counted_object* storage = allocator.allocate(3);
+    test_counted_object source(7);
+
+    c20_stl::uninitialized_fill(storage, storage, source);
+    assert(test_counted_object::constructions == 1);
+    assert(test_counted_object::destructions == 0);
+    assert(test_counted_object::copies == 0);
+    assert(test_counted_object::moves == 0);
+
+    c20_stl::uninitialized_fill(storage, storage + 3, source);
+    assert(test_counted_object::constructions == 4);
+    assert(test_counted_object::destructions == 0);
+    assert(test_counted_object::copies == 3);
+    assert(test_counted_object::moves == 0);
+    assert(storage[0].value == 7);
+    assert(storage[1].value == 7);
+    assert(storage[2].value == 7);
+
+    c20_stl::destroy_at(storage + 0);
+    c20_stl::destroy_at(storage + 1);
+    c20_stl::destroy_at(storage + 2);
+    assert(test_counted_object::constructions == 4);
+    assert(test_counted_object::destructions == 3);
+
+    allocator.deallocate(storage, 3);
+    assert(test_counted_object::constructions == 4);
+    assert(test_counted_object::destructions == 3);
+
+    std::allocator<test_counted_object> std_allocator;
+    test_counted_object* std_storage = std_allocator.allocate(3);
+
+    std::uninitialized_fill(std_storage, std_storage + 3, source);
+    assert(test_counted_object::constructions == 7);
+    assert(test_counted_object::destructions == 3);
+    assert(test_counted_object::copies == 6);
+    assert(test_counted_object::moves == 0);
+    assert(std_storage[0].value == 7);
+    assert(std_storage[1].value == 7);
+    assert(std_storage[2].value == 7);
+
+    std::destroy_at(std_storage + 0);
+    std::destroy_at(std_storage + 1);
+    std::destroy_at(std_storage + 2);
+    assert(test_counted_object::constructions == 7);
+    assert(test_counted_object::destructions == 6);
+
+    std_allocator.deallocate(std_storage, 3);
+    assert(test_counted_object::constructions == 7);
+    assert(test_counted_object::destructions == 6);
+    assert(test_counted_object::copies == 6);
+    assert(test_counted_object::moves == 0);
+}
+
 }
 
 int main(){
     c20_stl::test_allocator();
     c20_stl::test_construct_destroy();
+    c20_stl::test_uninitialized_fill();
 }
