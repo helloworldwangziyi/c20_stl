@@ -163,10 +163,103 @@ void test_uninitialized_fill(){
     assert(test_counted_object::moves == 0);
 }
 
+void test_uninitialized_copy()
+{
+    static_assert(std::is_same_v<
+        decltype(c20_stl::uninitialized_copy(
+            static_cast<const test_counted_object*>(nullptr),
+            static_cast<const test_counted_object*>(nullptr),
+            static_cast<test_counted_object*>(nullptr))),
+        test_counted_object*>);
+
+    test_counted_object::constructions = 0;
+    test_counted_object::destructions = 0;
+    test_counted_object::copies = 0;
+    test_counted_object::moves = 0;
+
+    c20_stl::allocator<test_counted_object> obj_allocator;
+    std::allocator<test_counted_object> std_allocator;
+    test_counted_object* storage = obj_allocator.allocate(10);
+    test_counted_object* dest = obj_allocator.allocate(10);
+    test_counted_object* std_dest = std_allocator.allocate(10);
+
+    test_counted_object* empty_result =
+        c20_stl::uninitialized_copy(storage, storage, dest);
+    assert(empty_result == dest);
+    assert(test_counted_object::constructions == 0);
+    assert(test_counted_object::destructions == 0);
+    assert(test_counted_object::copies == 0);
+    assert(test_counted_object::moves == 0);
+
+    for (int i = 0; i < 10; i++)
+    {
+        construct_at(&storage[i], i);
+    }
+    assert(test_counted_object::constructions == 10);
+
+    int constructions_before = test_counted_object::constructions;
+    int copies_before = test_counted_object::copies;
+    int moves_before = test_counted_object::moves;
+
+    test_counted_object* result =
+        c20_stl::uninitialized_copy(storage, storage + 10, dest);
+
+    const int c20_constructions =
+        test_counted_object::constructions - constructions_before;
+    const int c20_copies = test_counted_object::copies - copies_before;
+    const int c20_moves = test_counted_object::moves - moves_before;
+
+    assert(result == dest + 10);
+    assert(c20_constructions == 10);
+    assert(c20_copies == 10);
+    assert(c20_moves == 0);
+    assert(test_counted_object::destructions == 0);
+
+    constructions_before = test_counted_object::constructions;
+    copies_before = test_counted_object::copies;
+    moves_before = test_counted_object::moves;
+
+    test_counted_object* std_result =
+        std::uninitialized_copy(storage, storage + 10, std_dest);
+
+    const int std_constructions =
+        test_counted_object::constructions - constructions_before;
+    const int std_copies = test_counted_object::copies - copies_before;
+    const int std_moves = test_counted_object::moves - moves_before;
+
+    assert(std_result == std_dest + 10);
+    assert(std_constructions == c20_constructions);
+    assert(std_copies == c20_copies);
+    assert(std_moves == c20_moves);
+
+    for (int i = 0; i < 10; i++)
+    {
+        assert(storage[i].value == i);
+        assert(dest[i].value == i);
+        assert(dest[i].value == std_dest[i].value);
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        c20_stl::destroy_at(&storage[i]);
+        c20_stl::destroy_at(&dest[i]);
+        std::destroy_at(&std_dest[i]);
+    }
+    assert(test_counted_object::constructions == 30);
+    assert(test_counted_object::destructions == 30);
+    assert(test_counted_object::copies == 20);
+    assert(test_counted_object::moves == 0);
+
+    obj_allocator.deallocate(storage, 10);
+    obj_allocator.deallocate(dest, 10);
+    std_allocator.deallocate(std_dest, 10);
+}
+
 }
 
 int main(){
     c20_stl::test_allocator();
     c20_stl::test_construct_destroy();
     c20_stl::test_uninitialized_fill();
+    c20_stl::test_uninitialized_copy();
 }

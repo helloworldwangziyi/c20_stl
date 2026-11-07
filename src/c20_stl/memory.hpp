@@ -42,6 +42,21 @@ void uninitialized_fill(ForwardIt first, ForwardIt last, const T& value){
         construct_at(&*first, value);
     }
 }
+template <typename InputIt, typename ForwardIt>
+ForwardIt uninitialized_copy(InputIt first , InputIt last, ForwardIt dest)
+{
+    for (; first != last; ++first, ++dest)
+    {
+        construct_at(&*dest, *(first));
+    }
+    return dest;
+}
+
+template <typename InputIt, typename ForwardIt>
+void uninitialized_move(InputIt first, InputIt last, ForwardIt dest)
+{
+
+}
 
 }
 
