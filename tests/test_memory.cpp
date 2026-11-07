@@ -40,6 +40,33 @@ struct test_counted_object {
     }
 };
 
+struct move_only_object {
+    static inline int constructions = 0;
+    static inline int destructions = 0;
+    static inline int moves = 0;
+
+    int value;
+
+    explicit move_only_object(int v)
+        : value(v){
+        ++constructions;
+    }
+
+    move_only_object(const move_only_object&) = delete;
+    move_only_object& operator=(const move_only_object&) = delete;
+
+    move_only_object(move_only_object&& other) noexcept
+        : value(other.value){
+        other.value = -1;
+        ++constructions;
+        ++moves;
+    }
+
+    ~move_only_object(){
+        ++destructions;
+    }
+};
+
 void test_allocator(){
     static_assert(std::is_same_v<allocator<int>::value_type, int>);
     static_assert(std::is_convertible_v<allocator<int>, allocator<double>>);
@@ -255,6 +282,96 @@ void test_uninitialized_copy()
     std_allocator.deallocate(std_dest, 10);
 }
 
+void test_uninitialized_move()
+{
+    static_assert(!std::is_copy_constructible_v<move_only_object>);
+    static_assert(std::is_move_constructible_v<move_only_object>);
+    static_assert(std::is_same_v<
+        decltype(c20_stl::uninitialized_move(
+            static_cast<move_only_object*>(nullptr),
+            static_cast<move_only_object*>(nullptr),
+            static_cast<move_only_object*>(nullptr))),
+        move_only_object*>);
+
+    move_only_object::constructions = 0;
+    move_only_object::destructions = 0;
+    move_only_object::moves = 0;
+
+    c20_stl::allocator<move_only_object> obj_allocator;
+    std::allocator<move_only_object> std_allocator;
+    move_only_object* storage = obj_allocator.allocate(10);
+    move_only_object* dest = obj_allocator.allocate(10);
+    move_only_object* std_storage = std_allocator.allocate(10);
+    move_only_object* std_dest = std_allocator.allocate(10);
+
+    move_only_object* empty_result =
+        c20_stl::uninitialized_move(storage, storage, dest);
+    assert(empty_result == dest);
+    assert(move_only_object::constructions == 0);
+    assert(move_only_object::destructions == 0);
+    assert(move_only_object::moves == 0);
+
+    for (int i = 0; i < 10; i++)
+    {
+        c20_stl::construct_at(&storage[i], i);
+        std::construct_at(&std_storage[i], i);
+    }
+    assert(move_only_object::constructions == 20);
+    assert(move_only_object::moves == 0);
+
+    int constructions_before = move_only_object::constructions;
+    int moves_before = move_only_object::moves;
+
+    move_only_object* result =
+        c20_stl::uninitialized_move(storage, storage + 10, dest);
+
+    const int c20_constructions =
+        move_only_object::constructions - constructions_before;
+    const int c20_moves = move_only_object::moves - moves_before;
+
+    assert(result == dest + 10);
+    assert(c20_constructions == 10);
+    assert(c20_moves == 10);
+    assert(move_only_object::destructions == 0);
+
+    constructions_before = move_only_object::constructions;
+    moves_before = move_only_object::moves;
+
+    move_only_object* std_result =
+        std::uninitialized_move(std_storage, std_storage + 10, std_dest);
+
+    const int std_constructions =
+        move_only_object::constructions - constructions_before;
+    const int std_moves = move_only_object::moves - moves_before;
+
+    assert(std_result == std_dest + 10);
+    assert(std_constructions == c20_constructions);
+    assert(std_moves == c20_moves);
+
+    for (int i = 0; i < 10; i++)
+    {
+        assert(dest[i].value == i);
+        assert(std_dest[i].value == i);
+        assert(dest[i].value == std_dest[i].value);
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        c20_stl::destroy_at(&storage[i]);
+        c20_stl::destroy_at(&dest[i]);
+        std::destroy_at(&std_storage[i]);
+        std::destroy_at(&std_dest[i]);
+    }
+    assert(move_only_object::constructions == 40);
+    assert(move_only_object::destructions == 40);
+    assert(move_only_object::moves == 20);
+
+    obj_allocator.deallocate(storage, 10);
+    obj_allocator.deallocate(dest, 10);
+    std_allocator.deallocate(std_storage, 10);
+    std_allocator.deallocate(std_dest, 10);
+}
+
 }
 
 int main(){
@@ -262,4 +379,5 @@ int main(){
     c20_stl::test_construct_destroy();
     c20_stl::test_uninitialized_fill();
     c20_stl::test_uninitialized_copy();
+    c20_stl::test_uninitialized_move();
 }

@@ -53,9 +53,13 @@ ForwardIt uninitialized_copy(InputIt first , InputIt last, ForwardIt dest)
 }
 
 template <typename InputIt, typename ForwardIt>
-void uninitialized_move(InputIt first, InputIt last, ForwardIt dest)
+ForwardIt uninitialized_move(InputIt first, InputIt last, ForwardIt dest)
 {
-
+    for (; first != last; ++first, ++dest)
+    {
+        construct_at(&*dest, std::move(*first));
+    }
+    return dest;
 }
 
 }
