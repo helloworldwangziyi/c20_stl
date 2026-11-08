@@ -284,6 +284,28 @@ void test_traits(){
     static_assert(c20_stl::is_signed_v<c20_stl::true_type> ==
                   std::is_signed_v<c20_stl::true_type>);
 
+    // test is_lvalue_reference:只有 T& 形式为 true
+    static_assert(!c20_stl::is_lvalue_reference_v<int>);
+    static_assert(c20_stl::is_lvalue_reference_v<int&>);
+    static_assert(!c20_stl::is_lvalue_reference_v<int&&>);
+    static_assert(c20_stl::is_lvalue_reference_v<const int&>);
+    static_assert(c20_stl::is_lvalue_reference_v<int> == std::is_lvalue_reference_v<int>);
+    static_assert(c20_stl::is_lvalue_reference_v<int&> == std::is_lvalue_reference_v<int&>);
+    static_assert(c20_stl::is_lvalue_reference_v<int&&> == std::is_lvalue_reference_v<int&&>);
+    static_assert(c20_stl::is_lvalue_reference_v<const int&> ==
+                  std::is_lvalue_reference_v<const int&>);
+
+    // test is_rvalue_reference:只有 T&& 形式为 true
+    static_assert(!c20_stl::is_rvalue_reference_v<int>);
+    static_assert(!c20_stl::is_rvalue_reference_v<int&>);
+    static_assert(c20_stl::is_rvalue_reference_v<int&&>);
+    static_assert(!c20_stl::is_rvalue_reference_v<const int&>);
+    static_assert(c20_stl::is_rvalue_reference_v<int> == std::is_rvalue_reference_v<int>);
+    static_assert(c20_stl::is_rvalue_reference_v<int&> == std::is_rvalue_reference_v<int&>);
+    static_assert(c20_stl::is_rvalue_reference_v<int&&> == std::is_rvalue_reference_v<int&&>);
+    static_assert(c20_stl::is_rvalue_reference_v<const int&&> ==
+                  std::is_rvalue_reference_v<const int&&>);
+
 }
 
 }
