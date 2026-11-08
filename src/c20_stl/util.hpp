@@ -11,6 +11,19 @@ constexpr remove_reference_t<T>&& move(T&& value) noexcept
     return static_cast<remove_reference_t<T>&&>(value);
 }
 
+template<typename T>
+constexpr T&& forward(remove_reference_t<T>& value) noexcept
+{
+    return static_cast<T&&>(value);
+}
+
+template<typename T>
+constexpr T&& forward(remove_reference_t<T>&& value) noexcept
+{
+    static_assert(!is_lvalue_reference_v<T>, "bad forward call");
+    return static_cast<T&&>(value);
+}
+
 }
 
 #endif
