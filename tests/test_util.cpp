@@ -1,8 +1,10 @@
+#include "c20_stl/memory.hpp"
 #include <cassert>
 #include <memory>
 #include <type_traits>
 #include <utility>
 #include <c20_stl/util.hpp>
+#include <iostream>
 
 
 
@@ -148,10 +150,48 @@ void test_swap(){
     assert(obj1.val == 20);
 }
 
+void test_pair(){
+    c20_stl::pair<int ,double>p1(23, 2.3);
+    assert(p1.first == 23);
+    assert(p1.second == 2.3);
+
+    int x = 42;
+    double y = 3.14;
+    c20_stl::pair<int&, double&>p2(x, y);
+    assert(p2.first == 42);
+    assert(p2.second == 3.14);
+    assert(&p2.first == &x);
+    assert(&p2.second == &y);
+
+    move_only_object::constructions = 0;                    
+    move_only_object::destructions = 0;                     
+    move_only_object::moves = 0;    
+
+    move_only_object test{1};
+    move_only_object test2{2};
+    c20_stl::pair<move_only_object, move_only_object> p3(c20_stl::move(test), c20_stl::move(test2));
+    assert(p3.first.val == 1);
+    assert(p3.second.val == 2);
+    assert(move_only_object::moves == 2);          // 两成员各移动一次
+
+    {
+        move_only_object test3{1};
+        move_only_object test4{2};
+        c20_stl::pair<move_only_object&, move_only_object&> p4(test3, test4);
+        assert(p4.first.val == 1);
+        assert(p4.second.val == 2);
+        assert(&p4.first == &test3);
+        assert(&p4.second == &test4);
+    }   // test3/test4 在此析构(+2);p4 的引用成员析构是 no-op
+    assert(move_only_object::destructions == 2);
+
+}
+
 }
 
 int main(){
     c20_stl::test_move();
     c20_stl::test_forward();
     c20_stl::test_swap();
+    c20_stl::test_pair();
 }

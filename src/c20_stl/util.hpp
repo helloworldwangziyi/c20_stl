@@ -31,6 +31,26 @@ void swap(T& a, T& b){
     b = move(tmp);
 }
 
+template <typename T1, typename T2>
+struct pair{
+    T1 first;
+    T2 second;
+
+    pair() : first(), second() {};
+
+    template <typename U, typename V>
+    pair(U&& a, V&& b) : first(c20_stl::forward<U>(a)), second(c20_stl::forward<V>(b)) {}
+
+    template <typename U1, typename U2>
+    pair(const pair<U1, U2>& other) : first(other.first), second(other.second) {}
+
+    template <typename U1, typename U2>
+    pair(pair<U1, U2>&& other) : first(c20_stl::forward<U1>(other.first)), second(c20_stl::forward<U2>(other.second)) {}
+
+    
+
+};
+
 }
 
 #endif
