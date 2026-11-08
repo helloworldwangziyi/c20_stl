@@ -22,7 +22,12 @@ public:
         constructions++;
     };
     move_only_object(const move_only_object&) = delete;
-    move_only_object& operator=(const move_only_object&) = delete;
+    move_only_object& operator=(move_only_object&& other) noexcept{
+        this->val = other.val;
+        other.val = -1; // 清理移动之后的
+        ++moves;
+        return *this;
+    }
 
     move_only_object(move_only_object&& other) noexcept: val(other.val)
     {
@@ -117,9 +122,36 @@ void test_forward(){
     assert(src.val == 7);
 }
 
+void test_swap(){
+    // 基本类型:值互换
+    int a = 1;
+    int b = 2;
+    c20_stl::swap(a, b);
+    assert(a == 2);
+    assert(b == 1);
+
+    // 仅移动类型:值互换 + 零拷贝对账
+    move_only_object::constructions = 0;
+    move_only_object::destructions = 0;
+    move_only_object::moves = 0;
+    move_only_object obj1{10};
+    move_only_object obj2{20};
+    c20_stl::swap(obj1, obj2);
+    assert(obj1.val == 20);
+    assert(obj2.val == 10);
+    assert(move_only_object::moves == 3);           // tmp 移动构造(1) + 两次移动赋值(2)
+    assert(move_only_object::constructions == 3);   // obj1/obj2 + tmp
+    assert(move_only_object::destructions == 1);    // tmp 随 swap 返回已析构
+
+    // 自交换:值不变,不崩
+    c20_stl::swap(obj1, obj1);
+    assert(obj1.val == 20);
+}
+
 }
 
 int main(){
     c20_stl::test_move();
     c20_stl::test_forward();
+    c20_stl::test_swap();
 }

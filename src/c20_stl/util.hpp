@@ -24,6 +24,13 @@ constexpr T&& forward(remove_reference_t<T>&& value) noexcept
     return static_cast<T&&>(value);
 }
 
+template <typename T>
+void swap(T& a, T& b){
+    T tmp = move(a);
+    a = move(b);
+    b = move(tmp);
+}
+
 }
 
 #endif

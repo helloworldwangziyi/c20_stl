@@ -55,6 +55,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 - 🚧 `util`：`pair`、`move`、`forward`、`swap`（MyTinySTL `util.h` 对应物）
   - ✅ `move`：返回类型/const 保持/noexcept/移动计数/std 对照全过
   - ✅ `forward`：双重载 + `is_lvalue_reference` 守卫 + 四组 std 对照与移动/别名行为测试
+  - ✅ `swap`：move 三次搬运,仅移动类型零拷贝对账(moves==3/构造==3/析构==1),自交换安全
 - ⬜ 迭代器标签体系（`input_iterator_tag` → `random_access_iterator_tag`）
 - ⬜ `iterator_traits` 简化版 + `reverse_iterator`
 - ⬜ `distance` / `advance` 基础版
@@ -149,3 +150,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-07 | `uninitialized_copy`/`uninitialized_move` 实现及 memory 对照测试通过；**阶段三启动**，全量构建验证待修复 |
 | 2026-11-08 | 全量 `ctest` 绿，**阶段二收官**；`move` 毕业（类型/noexcept/移动计数/std 对照）；clangd 工具链修通（compile_commands + `.clangd`） |
 | 2026-11-08 | 补 `is_lvalue_reference`/`is_rvalue_reference`（阶段一清单外补漏）；`forward` 毕业：双重载 + 守卫（右值冒充左值编译期拦截，实证 `static assertion failed`） |
+| 2026-11-08 | `swap` 毕业：三次搬运零拷贝；`move_only_object` 补移动赋值成为完整仅移动类型（踩中"声明拷贝构造抑制移动赋值自动生成"规则）；模板推导/引用折叠专项讲解 |
