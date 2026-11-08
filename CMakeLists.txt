@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.20)
 
 project(cpp20_stl LANGUAGES CXX)
 
+# 生成 compile_commands.json,供 clangd 等工具读取编译参数
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -19,6 +22,7 @@ set(TEST_SOURCES
     smoke_test
     test_type_traits
     test_memory
+    test_util
 )
 
 foreach(name IN LISTS TEST_SOURCES)

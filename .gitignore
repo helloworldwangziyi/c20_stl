@@ -1,1 +1,11 @@
 /build/
+
+# CMake/CLion 构建目录(含 compile_commands.json、.exe 等产物)
+/cmake-build-debug/
+
+# CLion 个人 IDE 配置
+/.idea/
+
+# clangd 本地配置:内含机器专属绝对路径(如 CLion 安装位置),
+# 换机器/换平台即失效,勿入库
+/.clangd
