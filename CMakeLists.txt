@@ -23,6 +23,7 @@ set(TEST_SOURCES
     test_type_traits
     test_memory
     test_util
+    test_iterator
 )
 
 foreach(name IN LISTS TEST_SOURCES)
