@@ -1,6 +1,7 @@
 #include <iostream>
 #include <c20_stl/type_traits.hpp>
 #include <cassert>
+#include <cstddef>
 
 namespace c20_stl{
 
@@ -51,5 +52,13 @@ int main(){
 
     auto t = test_template_object();
     assert(t.constructions == 1);
+
+    // 验证指针相减 得到的类别是 std::ptrdiff_t
+    int p[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int * p1 = &p[0];
+    int * p2 = &p[9];
+    static_assert(c20_stl::is_same_v<decltype(p2 - p1), std::ptrdiff_t>);
+
+
     return 0;
 }
