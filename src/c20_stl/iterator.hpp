@@ -15,6 +15,8 @@ struct bidirectional_iterator_tag : forward_iterator_tag{};
 
 struct random_access_iterator_tag : bidirectional_iterator_tag{};
 
+struct contiguous_iterator_tag : random_access_iterator_tag{};
+
 
 template <typename Category, typename T, typename Distance = std::ptrdiff_t, typename Pointer = T*, typename Reference = T&>
 struct iterator{

@@ -57,8 +57,9 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
   - ✅ `forward`：双重载 + `is_lvalue_reference` 守卫 + 四组 std 对照与移动/别名行为测试
   - ✅ `swap`：move 三次搬运,仅移动类型零拷贝对账(moves==3/构造==3/析构==1),自交换安全
   - ✅ `pair`：万能引用两参转发 + 跨类型拷贝/移动构造;引用成员(别名/重绑定/无默认构造)语义实测
-- ⬜ 迭代器标签体系（`input_iterator_tag` → `random_access_iterator_tag`）
-- ⬜ `iterator_traits` 简化版 + `reverse_iterator`
+- ✅ 迭代器标签体系（`input_iterator_tag` → `contiguous_iterator_tag`，含 `output_iterator_tag`）
+- ✅ `iterator_traits`：主模板 + `T*`/`const T*` 特化，指针与类迭代器平权
+- ⬜ `reverse_iterator`
 - ⬜ `distance` / `advance` 基础版
 
 ## 阶段四：vector + algobase（第一个容器）
@@ -153,3 +154,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-08 | 补 `is_lvalue_reference`/`is_rvalue_reference`（阶段一清单外补漏）；`forward` 毕业：双重载 + 守卫（右值冒充左值编译期拦截，实证 `static assertion failed`） |
 | 2026-11-08 | `swap` 毕业：三次搬运零拷贝；`move_only_object` 补移动赋值成为完整仅移动类型（踩中"声明拷贝构造抑制移动赋值自动生成"规则）；模板推导/引用折叠专项讲解 |
 | 2026-11-08 | `pair` 毕业：万能引用转发构造;引用成员语义实战(移动后源被掏空/悬垂访问假象期/析构对账用块作用域);**util 四件套(move/forward/swap/pair)齐备** |
+| 2026-11-13 | 迭代器标签体系 + `iterator_traits` 毕业（含 `T*`/`const T*` 特化，让指针与类迭代器平权）；tag dispatch 重载分发实证（能者多劳、菜者兜底） |
