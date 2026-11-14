@@ -10,3 +10,6 @@
 # 换机器/换平台即失效,勿入库
 /.clangd
 .cache/
+
+# 外部教程本地副本
+/docs/modern-cpp-templates/
