@@ -79,10 +79,46 @@ void test_tag_dispatch(){
     assert(distance_dispatch(input_iterator_tag{}) == "linear");
 }
 
+void test_forward_iterator(){
+    class test_forward_iterator : public c20_stl::iterator<c20_stl::forward_iterator_tag, int>{
+        private: int * current_;
+        public:
+            explicit test_forward_iterator(int* p) : current_(p){}
+
+            bool operator!=(const test_forward_iterator& other) {
+                return other.current_ != current_;
+            }
+
+            test_forward_iterator& operator++(){
+                current_++;
+                return *this;
+            }
+
+            int get_current_value(){
+                return *(this->current_);
+            }
+    };
+
+    int arr[] = {10, 20, 30, 40, 50};
+    test_forward_iterator first(arr);
+    test_forward_iterator last(arr + 5);
+
+    assert(c20_stl::distance(first, last) == 5);
+
+}
+
+void test_distance(){
+    int arr[] = {10, 20, 30, 40, 50};
+    assert(c20_stl::distance(arr, arr + 5) == std::distance(arr, arr + 5));
+    assert(c20_stl::distance(arr, arr + 5) == 5);
+}
+
 }
 
 int main(){
     c20_stl::test_iterator_tag();
     c20_stl::test_iterator_traits();
     c20_stl::test_tag_dispatch();
+    c20_stl::test_forward_iterator();
+    c20_stl::test_distance();
 }

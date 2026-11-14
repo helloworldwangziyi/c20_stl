@@ -55,6 +55,25 @@ struct iterator_traits<const T*>{
 };
 
 
+template <typename Iterator>
+iterator_traits<Iterator>::difference_type distance_impl(Iterator first, Iterator last, input_iterator_tag){
+    typename iterator_traits<Iterator>::difference_type n = 0;
+    for(; first != last; ++first, ++n);
+    return n;
+}
+
+template <typename Iterator>
+iterator_traits<Iterator>::difference_type distance_impl(Iterator first, Iterator last, random_access_iterator_tag){
+    return last - first;
+}
+
+template <typename Iterator>
+iterator_traits<Iterator>::difference_type distance(Iterator first, Iterator last){
+    return distance_impl(first, last, typename iterator_traits<Iterator>::iterator_category{});
+}
+
+
+
 }
 
 
