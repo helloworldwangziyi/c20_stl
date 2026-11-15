@@ -115,6 +115,45 @@ void advance(Iterator& first, Distance N){
     advance_impl(first, N, typename iterator_traits<Iterator>::iterator_category{});
 }
 
+template <typename Iterator>
+class reverse_iterator{
+private:
+    Iterator current_;
+
+public:
+    using iterator_category = typename c20_stl::iterator_traits<Iterator>::iterator_category;
+    using value_type = typename c20_stl::iterator_traits<Iterator>::value_type;
+    using pointer = typename c20_stl::iterator_traits<Iterator>::pointer;
+    using difference_type = typename c20_stl::iterator_traits<Iterator>::difference_type;
+    using reference = typename c20_stl::iterator_traits<Iterator>::reference;
+    using iterator_type = Iterator;
+
+    reverse_iterator() : current_() {}
+
+    explicit reverse_iterator(Iterator other): current_(other){}
+
+    reverse_iterator& operator++(){
+        --current_;
+        return *this;
+    }
+
+    reverse_iterator& operator--(){
+        ++current_;
+        return *this;
+    }
+
+    Iterator base() const {
+        return current_;
+    }
+
+    reference operator* () const {
+        Iterator tmp = current_;
+        --tmp;
+        return *tmp;
+    }
+
+};
+
 
 
 }
