@@ -2,6 +2,7 @@
 #define C20_STL_ITERATOR_HPP
 
 #include <cstddef>
+#include <cassert>
 namespace c20_stl{
 
 // 五种迭代器的类型
@@ -70,6 +71,48 @@ iterator_traits<Iterator>::difference_type distance_impl(Iterator first, Iterato
 template <typename Iterator>
 iterator_traits<Iterator>::difference_type distance(Iterator first, Iterator last){
     return distance_impl(first, last, typename iterator_traits<Iterator>::iterator_category{});
+}
+
+template <typename Iterator, typename Distance = std::ptrdiff_t>
+void advance_impl(Iterator& first, Distance n, input_iterator_tag){
+    assert(n >= 0);
+    while(n > 0){
+        n--;
+        ++first;
+    }
+}
+
+template <typename Iterator, typename Distance = std::ptrdiff_t>
+void advance_impl(Iterator& first, Distance n, forward_iterator_tag){
+    assert(n >= 0);
+    while(n > 0){
+        n--;
+        ++first;
+    }
+}
+
+template <typename Iterator, typename Distance = std::ptrdiff_t>
+void advance_impl(Iterator& first, Distance n, bidirectional_iterator_tag){
+    while(n > 0){
+        ++first;
+        --n;
+    }
+    while(n < 0){
+        --first;
+        ++n;
+    }
+}
+
+
+template <typename Iterator, typename Distance>
+void advance_impl(Iterator& first, Distance n, random_access_iterator_tag){
+    first += n;
+}
+
+
+template <typename Iterator,typename Distance>
+void advance(Iterator& first, Distance N){
+    advance_impl(first, N, typename iterator_traits<Iterator>::iterator_category{});
 }
 
 

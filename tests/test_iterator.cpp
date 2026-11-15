@@ -4,6 +4,7 @@
 #include <iterator>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 
 namespace c20_stl{
@@ -105,6 +106,93 @@ void test_forward_iterator(){
 
     assert(c20_stl::distance(first, last) == 5);
 
+    test_forward_iterator advance_first(arr);
+    int* std_first = arr;
+    c20_stl::advance(advance_first, 3);
+    std::advance(std_first, 3);
+    assert(advance_first.get_current_value() == *std_first);
+
+}
+
+void test_input_iterator(){
+    class test_input_iterator
+        : public c20_stl::iterator<c20_stl::input_iterator_tag, int> {
+        private:
+            int* current_;
+        public:
+            explicit test_input_iterator(int* p) : current_(p) {}
+
+            test_input_iterator& operator++() {
+                ++current_;
+                return *this;
+            }
+
+            int* base() const {
+                return current_;
+            }
+    };
+
+    int arr[] = {10, 20, 30, 40, 50};
+    test_input_iterator first(arr);
+    int* std_first = arr;
+
+    c20_stl::advance(first, 2);
+    std::advance(std_first, 2);
+    assert(first.base() == std_first);
+}
+
+static_assert(std::is_same_v<
+    decltype(c20_stl::advance(std::declval<int*&>(), 1)),
+    void>);
+
+void test_bidirectional_iterator(){
+    class test_bidirectional_iterator : public c20_stl::iterator<c20_stl::bidirectional_iterator_tag, int>{
+        private:
+            int * current_;
+        public:
+            explicit test_bidirectional_iterator(int* p) : current_(p){}
+
+            test_bidirectional_iterator& operator++(){
+                ++current_;
+                return *this;
+            }
+
+            test_bidirectional_iterator& operator--(){
+                --current_;
+                return *this;
+            }
+
+            int* base(){
+                return current_;
+            }
+    };
+
+    int arr[] = {1, 2, 3, 4, 5};
+    test_bidirectional_iterator first(arr + 2);
+    int * std_first = arr + 2;
+
+    c20_stl::advance(first, 2);
+    std::advance(std_first, 2);
+    assert(first.base() == std_first);
+
+    c20_stl::advance(first, -1);
+    std::advance(std_first, -1);
+    assert(first.base() == std_first);
+
+}
+
+void test_random_access_iterator(){
+    int arr[] = {1, 2, 3, 4, 5};
+    int* first = arr + 1;
+    int* std_first = arr + 1;
+
+    c20_stl::advance(first, 3);
+    std::advance(std_first, 3);
+    assert(first == std_first);
+
+    c20_stl::advance(first, -2);
+    std::advance(std_first, -2);
+    assert(first == std_first);
 }
 
 void test_distance(){
@@ -119,6 +207,9 @@ int main(){
     c20_stl::test_iterator_tag();
     c20_stl::test_iterator_traits();
     c20_stl::test_tag_dispatch();
+    c20_stl::test_input_iterator();
     c20_stl::test_forward_iterator();
+    c20_stl::test_bidirectional_iterator();
+    c20_stl::test_random_access_iterator();
     c20_stl::test_distance();
 }
