@@ -142,6 +142,18 @@ public:
         return *this;
     }
 
+    reverse_iterator operator++(int){
+        reverse_iterator tmp(*this);
+        ++(*this);
+        return tmp;
+    }
+
+    reverse_iterator operator--(int){
+        reverse_iterator tmp(*this);
+        --(*this);
+        return tmp;
+    }
+
     Iterator base() const {
         return current_;
     }
@@ -150,6 +162,10 @@ public:
         Iterator tmp = current_;
         --tmp;
         return *tmp;
+    }
+
+    pointer operator->() const{
+        return &(operator*());
     }
 
 };
