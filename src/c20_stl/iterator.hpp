@@ -168,8 +168,56 @@ public:
         return &(operator*());
     }
 
+    reverse_iterator operator+(difference_type n) const {
+        reverse_iterator tmp(current_ - n);
+        return tmp;
+    }
+
+    reverse_iterator operator-(difference_type n) const {
+        reverse_iterator tmp(current_ + n);
+        return tmp;
+    }
+
+    reverse_iterator& operator+=(difference_type n) {
+        current_ -= n;
+        return *this;
+    }
+
+    reverse_iterator& operator-=(difference_type n) {
+        current_ += n;
+        return *this;
+    }
+
+    reference operator[](difference_type n) const {
+        return *(*this + n);
+    }
+
 };
 
+template <typename Iterator>
+bool operator==(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator>& b) {
+    return a.base() == b.base();
+}
+
+template <typename Iterator>
+bool operator<(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator>&b ){
+    return a.base() > b.base();
+}
+
+template <typename Iterator>
+bool operator>(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator> &b){
+    return a.base() < b.base();
+}
+
+template <typename Iterator>
+bool operator<=(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator>& b){
+    return !(a > b);
+}
+
+template <typename Iterator>
+bool operator>=(const reverse_iterator<Iterator>&a, const reverse_iterator<Iterator>&b){
+    return !(a < b);
+}
 
 
 }

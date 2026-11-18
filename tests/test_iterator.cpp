@@ -201,6 +201,177 @@ void test_distance(){
     assert(c20_stl::distance(arr, arr + 5) == 5);
 }
 
+void test_reverse_iterator(){
+    using c20_reverse_iterator = c20_stl::reverse_iterator<int*>;
+    using std_reverse_iterator = std::reverse_iterator<int*>;
+
+    // 类型萃取与构造
+    static_assert(std::is_same_v<c20_reverse_iterator::iterator_type,
+                                 std_reverse_iterator::iterator_type>);
+    static_assert(std::is_same_v<c20_reverse_iterator::value_type,
+                                 std_reverse_iterator::value_type>);
+    static_assert(std::is_same_v<c20_reverse_iterator::difference_type,
+                                 std_reverse_iterator::difference_type>);
+    static_assert(std::is_same_v<c20_reverse_iterator::pointer,
+                                 std_reverse_iterator::pointer>);
+    static_assert(std::is_same_v<c20_reverse_iterator::reference,
+                                 std_reverse_iterator::reference>);
+    static_assert(std::is_same_v<c20_reverse_iterator::iterator_category,
+                                 c20_stl::random_access_iterator_tag>);
+    static_assert(std::is_same_v<std_reverse_iterator::iterator_category,
+                                 std::random_access_iterator_tag>);
+
+    c20_reverse_iterator c20_default;
+    std_reverse_iterator std_default;
+    assert(c20_default.base() == std_default.base());
+    assert(c20_default.base() == nullptr);
+
+    int arr[] = {1, 2, 3, 4, 5, 6};
+    c20_reverse_iterator reverse_it(arr + 4);
+    std_reverse_iterator std_reverse_it(arr + 4);
+    static_assert(std::is_same_v<decltype(reverse_it.base()),
+                                 decltype(std_reverse_it.base())>);
+    assert(reverse_it.base() == std_reverse_it.base());
+    assert(reverse_it.base() == &arr[4]);
+    assert(*reverse_it == *std_reverse_it);
+    assert(*reverse_it == 4);
+
+    // 后置 ++/-- 返回旧位置，原对象移动一步
+    auto c20_old = reverse_it++;
+    auto std_old = std_reverse_it++;
+    assert(c20_old.base() == std_old.base());
+    assert(*c20_old == *std_old);
+    assert(*c20_old == 4);
+    assert(reverse_it.base() == std_reverse_it.base());
+    assert(*reverse_it == *std_reverse_it);
+    assert(*reverse_it == 3);
+
+    c20_old = reverse_it--;
+    std_old = std_reverse_it--;
+    assert(c20_old.base() == std_old.base());
+    assert(*c20_old == *std_old);
+    assert(*c20_old == 3);
+    assert(reverse_it.base() == std_reverse_it.base());
+    assert(*reverse_it == *std_reverse_it);
+    assert(*reverse_it == 4);
+
+    // 前置 ++/-- 返回原对象的引用
+    auto& c20_pre_increment = ++reverse_it;
+    auto& std_pre_increment = ++std_reverse_it;
+    assert(&c20_pre_increment == &reverse_it);
+    assert(&std_pre_increment == &std_reverse_it);
+    assert(c20_pre_increment.base() == std_pre_increment.base());
+    assert(*c20_pre_increment == *std_pre_increment);
+    assert(*c20_pre_increment == 3);
+
+    auto& c20_pre_decrement = --reverse_it;
+    auto& std_pre_decrement = --std_reverse_it;
+    assert(&c20_pre_decrement == &reverse_it);
+    assert(&std_pre_decrement == &std_reverse_it);
+    assert(c20_pre_decrement.base() == std_pre_decrement.base());
+    assert(*c20_pre_decrement == *std_pre_decrement);
+    assert(*c20_pre_decrement == 4);
+
+    // + 和 - 返回新迭代器，不修改原对象
+    const auto c20_plus_zero = reverse_it + 0;
+    const auto std_plus_zero = std_reverse_it + 0;
+    assert(c20_plus_zero.base() == std_plus_zero.base());
+    assert(*c20_plus_zero == *std_plus_zero);
+    assert(*c20_plus_zero == 4);
+
+    const auto c20_minus_zero = reverse_it - 0;
+    const auto std_minus_zero = std_reverse_it - 0;
+    assert(c20_minus_zero.base() == std_minus_zero.base());
+    assert(*c20_minus_zero == *std_minus_zero);
+    assert(*c20_minus_zero == 4);
+
+    const auto c20_plus_two = reverse_it + 2;
+    const auto std_plus_two = std_reverse_it + 2;
+    assert(c20_plus_two.base() == std_plus_two.base());
+    assert(*c20_plus_two == *std_plus_two);
+    assert(*c20_plus_two == 2);
+
+    const auto c20_minus_two = reverse_it - 2;
+    const auto std_minus_two = std_reverse_it - 2;
+    assert(c20_minus_two.base() == std_minus_two.base());
+    assert(*c20_minus_two == *std_minus_two);
+    assert(*c20_minus_two == 6);
+    assert(reverse_it.base() == std_reverse_it.base());
+    assert(reverse_it.base() == arr + 4);
+
+    // += 和 -= 返回原对象的引用
+    auto& c20_plus_assign = (reverse_it += 2);
+    auto& std_plus_assign = (std_reverse_it += 2);
+    assert(&c20_plus_assign == &reverse_it);
+    assert(&std_plus_assign == &std_reverse_it);
+    assert(c20_plus_assign.base() == std_plus_assign.base());
+    assert(*c20_plus_assign == *std_plus_assign);
+    assert(*c20_plus_assign == 2);
+
+    auto& c20_minus_assign = (reverse_it -= 4);
+    auto& std_minus_assign = (std_reverse_it -= 4);
+    assert(&c20_minus_assign == &reverse_it);
+    assert(&std_minus_assign == &std_reverse_it);
+    assert(c20_minus_assign.base() == std_minus_assign.base());
+    assert(*c20_minus_assign == *std_minus_assign);
+    assert(*c20_minus_assign == 6);
+
+    // 下标访问不修改 base()
+    assert(reverse_it[0] == std_reverse_it[0]);
+    assert(reverse_it[0] == 6);
+    assert(reverse_it[4] == std_reverse_it[4]);
+    assert(reverse_it[4] == 2);
+    assert(reverse_it[5] == std_reverse_it[5]);
+    assert(reverse_it[5] == 1);
+    assert(reverse_it.base() == std_reverse_it.base());
+    assert(reverse_it.base() == arr + 6);
+
+    // 箭头访问的是反向解引用后的元素
+    struct test_item {
+        int value;
+    };
+    test_item items[] = {{10}, {20}, {30}};
+    c20_stl::reverse_iterator<test_item*> c20_arrow(items + 2);
+    std::reverse_iterator<test_item*> std_arrow(items + 2);
+    static_assert(std::is_same_v<decltype(c20_arrow.operator->()),
+                                 decltype(std_arrow.operator->())>);
+    assert(c20_arrow.operator->() == std_arrow.operator->());
+    assert(c20_arrow.operator->() == &items[1]);
+    assert(c20_arrow->value == std_arrow->value);
+    assert(c20_arrow->value == 20);
+
+    // 比较运算：正反方向与相等位置都和 std 对照
+    auto check_comparisons = [](const c20_reverse_iterator& c20_a,
+                                const c20_reverse_iterator& c20_b,
+                                const std_reverse_iterator& std_a,
+                                const std_reverse_iterator& std_b) {
+        assert((c20_a == c20_b) == (std_a == std_b));
+        assert((c20_a < c20_b) == (std_a < std_b));
+        assert((c20_a > c20_b) == (std_a > std_b));
+        assert((c20_a <= c20_b) == (std_a <= std_b));
+        assert((c20_a >= c20_b) == (std_a >= std_b));
+    };
+
+    c20_reverse_iterator c20_left(arr + 4);
+    c20_reverse_iterator c20_right(arr + 2);
+    c20_reverse_iterator c20_equal(arr + 4);
+    std_reverse_iterator std_left(arr + 4);
+    std_reverse_iterator std_right(arr + 2);
+    std_reverse_iterator std_equal(arr + 4);
+
+    check_comparisons(c20_left, c20_right, std_left, std_right);
+    check_comparisons(c20_right, c20_left, std_right, std_left);
+    check_comparisons(c20_left, c20_equal, std_left, std_equal);
+    assert(!(c20_left == c20_right));
+    assert(c20_left < c20_right);
+    assert(!(c20_left > c20_right));
+    assert(c20_left <= c20_right);
+    assert(!(c20_left >= c20_right));
+    assert(c20_left == c20_equal);
+    assert(c20_left <= c20_equal);
+    assert(c20_left >= c20_equal);
+}
+
 }
 
 int main(){
@@ -212,4 +383,5 @@ int main(){
     c20_stl::test_bidirectional_iterator();
     c20_stl::test_random_access_iterator();
     c20_stl::test_distance();
+    c20_stl::test_reverse_iterator();
 }
