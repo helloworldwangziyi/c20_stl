@@ -24,6 +24,8 @@ set(TEST_SOURCES
     test_memory
     test_util
     test_iterator
+    test_algo
+    test_vector
 )
 
 foreach(name IN LISTS TEST_SOURCES)
