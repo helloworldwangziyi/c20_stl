@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cassert>
+#include <type_traits>
 namespace c20_stl{
 
 // 五种迭代器的类型
@@ -132,6 +133,11 @@ public:
 
     explicit reverse_iterator(Iterator other): current_(other){}
 
+    template <typename OtherIterator>
+        requires std::is_convertible_v<OtherIterator, Iterator>
+    reverse_iterator(const reverse_iterator<OtherIterator>& other)
+        : current_(other.base()) {}
+
     reverse_iterator& operator++(){
         --current_;
         return *this;
@@ -195,27 +201,46 @@ public:
 };
 
 template <typename Iterator>
-bool operator==(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator>& b) {
+reverse_iterator<Iterator> operator+(
+    typename reverse_iterator<Iterator>::difference_type n,
+    const reverse_iterator<Iterator>& it) {
+    return it + n;
+}
+
+template <typename LeftIterator, typename RightIterator>
+auto operator-(const reverse_iterator<LeftIterator>& a,
+               const reverse_iterator<RightIterator>& b)
+    -> decltype(b.base() - a.base()) {
+    return b.base() - a.base();
+}
+
+template <typename LeftIterator, typename RightIterator>
+bool operator==(const reverse_iterator<LeftIterator>& a,
+                const reverse_iterator<RightIterator>& b) {
     return a.base() == b.base();
 }
 
-template <typename Iterator>
-bool operator<(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator>&b ){
+template <typename LeftIterator, typename RightIterator>
+bool operator<(const reverse_iterator<LeftIterator>& a,
+               const reverse_iterator<RightIterator>& b) {
     return a.base() > b.base();
 }
 
-template <typename Iterator>
-bool operator>(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator> &b){
+template <typename LeftIterator, typename RightIterator>
+bool operator>(const reverse_iterator<LeftIterator>& a,
+               const reverse_iterator<RightIterator>& b) {
     return a.base() < b.base();
 }
 
-template <typename Iterator>
-bool operator<=(const reverse_iterator<Iterator>& a, const reverse_iterator<Iterator>& b){
+template <typename LeftIterator, typename RightIterator>
+bool operator<=(const reverse_iterator<LeftIterator>& a,
+                const reverse_iterator<RightIterator>& b) {
     return !(a > b);
 }
 
-template <typename Iterator>
-bool operator>=(const reverse_iterator<Iterator>&a, const reverse_iterator<Iterator>&b){
+template <typename LeftIterator, typename RightIterator>
+bool operator>=(const reverse_iterator<LeftIterator>& a,
+                const reverse_iterator<RightIterator>& b) {
     return !(a < b);
 }
 

@@ -370,6 +370,100 @@ void test_reverse_iterator(){
     assert(c20_left == c20_equal);
     assert(c20_left <= c20_equal);
     assert(c20_left >= c20_equal);
+
+    // 两个反向迭代器相减：距离方向与 std 一致
+    assert((c20_left - c20_right) == (std_left - std_right));
+    assert(c20_left - c20_right == -2);
+    assert((c20_right - c20_left) == (std_right - std_left));
+    assert(c20_right - c20_left == 2);
+    assert((c20_left - c20_equal) == (std_left - std_equal));
+    assert(c20_left - c20_equal == 0);
+
+    // n + it 与 it + n 一致，且不修改原对象
+    const auto c20_n_plus = 2 + c20_left;
+    const auto std_n_plus = 2 + std_left;
+    assert(c20_n_plus.base() == std_n_plus.base());
+    assert(*c20_n_plus == *std_n_plus);
+    assert(*c20_n_plus == 2);
+    assert(c20_n_plus.base() == (c20_left + 2).base());
+    assert(c20_left.base() == std_left.base());
+    assert(c20_left.base() == arr + 4);
+
+    // 普通迭代器可以隐式转换为 const 迭代器，反向转换必须被拒绝
+    using c20_const_reverse_iterator = c20_stl::reverse_iterator<const int*>;
+    using std_const_reverse_iterator = std::reverse_iterator<const int*>;
+    static_assert(std::is_convertible_v<c20_reverse_iterator,
+                                        c20_const_reverse_iterator> ==
+                  std::is_convertible_v<std_reverse_iterator,
+                                        std_const_reverse_iterator>);
+    static_assert(std::is_convertible_v<c20_reverse_iterator,
+                                        c20_const_reverse_iterator>);
+    static_assert(std::is_convertible_v<c20_const_reverse_iterator,
+                                        c20_reverse_iterator> ==
+                  std::is_convertible_v<std_const_reverse_iterator,
+                                        std_reverse_iterator>);
+    static_assert(!std::is_convertible_v<c20_const_reverse_iterator,
+                                         c20_reverse_iterator>);
+
+    c20_const_reverse_iterator c20_converted = c20_left;
+    std_const_reverse_iterator std_converted = std_left;
+    assert(c20_converted.base() == std_converted.base());
+    assert(c20_converted.base() == arr + 4);
+    assert(*c20_converted == *std_converted);
+    assert(*c20_converted == 4);
+
+    // 跨类型比较覆盖两个操作数方向
+    c20_const_reverse_iterator c20_const_right = c20_right;
+    std_const_reverse_iterator std_const_right = std_right;
+    auto check_mixed_comparisons = [](const auto& c20_a,
+                                      const auto& c20_b,
+                                      const auto& std_a,
+                                      const auto& std_b) {
+        assert((c20_a == c20_b) == (std_a == std_b));
+        assert((c20_a != c20_b) == (std_a != std_b));
+        assert((c20_a < c20_b) == (std_a < std_b));
+        assert((c20_a > c20_b) == (std_a > std_b));
+        assert((c20_a <= c20_b) == (std_a <= std_b));
+        assert((c20_a >= c20_b) == (std_a >= std_b));
+    };
+    check_mixed_comparisons(c20_left, c20_const_right,
+                            std_left, std_const_right);
+    check_mixed_comparisons(c20_const_right, c20_left,
+                            std_const_right, std_left);
+    assert((c20_left - c20_const_right) == (std_left - std_const_right));
+    assert(c20_left - c20_const_right == -2);
+    assert((c20_const_right - c20_left) == (std_const_right - std_left));
+    assert(c20_const_right - c20_left == 2);
+
+    // reverse_iterator 与 distance 协作
+    c20_reverse_iterator c20_rbegin(arr + 6);
+    c20_reverse_iterator c20_rend(arr);
+    std_reverse_iterator std_rbegin(arr + 6);
+    std_reverse_iterator std_rend(arr);
+    const auto c20_reverse_distance = c20_stl::distance(c20_rbegin, c20_rend);
+    const auto std_reverse_distance = std::distance(std_rbegin, std_rend);
+    static_assert(std::is_same_v<decltype(c20_reverse_distance),
+                                 decltype(std_reverse_distance)>);
+    assert(c20_reverse_distance == std_reverse_distance);
+    assert(c20_reverse_distance == 6);
+    assert(c20_stl::distance(c20_rbegin, c20_rbegin) ==
+           std::distance(std_rbegin, std_rbegin));
+    assert(c20_stl::distance(c20_rbegin, c20_rbegin) == 0);
+
+    // reverse_iterator 与 advance 协作，支持正负位移
+    auto c20_advanced = c20_rbegin;
+    auto std_advanced = std_rbegin;
+    c20_stl::advance(c20_advanced, 3);
+    std::advance(std_advanced, 3);
+    assert(c20_advanced.base() == std_advanced.base());
+    assert(*c20_advanced == *std_advanced);
+    assert(*c20_advanced == 3);
+
+    c20_stl::advance(c20_advanced, -2);
+    std::advance(std_advanced, -2);
+    assert(c20_advanced.base() == std_advanced.base());
+    assert(*c20_advanced == *std_advanced);
+    assert(*c20_advanced == 5);
 }
 
 }

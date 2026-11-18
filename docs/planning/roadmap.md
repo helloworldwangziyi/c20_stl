@@ -50,7 +50,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 - ✅ 计数类型测试工具（构造/析构次数、拷贝/移动追踪）——写 vector 时一直用
 - ⬜ 进阶选做：内存池（MyTinySTL `alloc.h` 对应物，自由链表按 size 分级）
 
-## 阶段三：iterator + util（进行中）
+## 阶段三：iterator + util（已完成）
 
 - ✅ `util`：`pair`、`move`、`forward`、`swap`（MyTinySTL `util.h` 对应物）
   - ✅ `move`：返回类型/const 保持/noexcept/移动计数/std 对照全过
@@ -59,7 +59,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
   - ✅ `pair`：万能引用两参转发 + 跨类型拷贝/移动构造;引用成员(别名/重绑定/无默认构造)语义实测
 - ✅ 迭代器标签体系（`input_iterator_tag` → `contiguous_iterator_tag`，含 `output_iterator_tag`）
 - ✅ `iterator_traits`：主模板 + `T*`/`const T*` 特化，指针与类迭代器平权
-- ⬜ `reverse_iterator`
+- ✅ `reverse_iterator`：算术与比较、跨类型 const 转换、迭代器距离，含 `distance`/`advance` 协作及 std 对照
 - ✅ `distance` 基础版：input/forward 线性遍历，random_access 差值；含自定义 forward 与指针/std 对照
 - ✅ `advance` 基础版
 
@@ -158,3 +158,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-13 | 迭代器标签体系 + `iterator_traits` 毕业（含 `T*`/`const T*` 特化，让指针与类迭代器平权）；tag dispatch 重载分发实证（能者多劳、菜者兜底） |
 | 2026-11-14 | `distance` 基础版毕业：input/forward 线性遍历、random_access 差值；自定义 forward 与指针/std 对照，全量 `ctest` 绿；GDB 实战定位测试迭代器 `operator!=` 返回值反转 |
 | 2026-11-15 | `advance` 基础版毕业：input/forward 正向、bidirectional 正负、random_access 常数位移；补齐返回类型与 std 对照测试，全量 `ctest` 绿 |
+| 2026-11-18 | `reverse_iterator` 毕业：补齐算术/比较、跨类型 const 转换、迭代器距离及 `n + it`，验证 `distance`/`advance` 协作；全量 `ctest` 绿，**阶段三完成** |
