@@ -1,3 +1,4 @@
+#include <cassert>
 #include <c20_stl/vector.hpp>
 #include <c20_stl/type_traits.hpp>
 #include <type_traits>
@@ -24,9 +25,33 @@ void test_vector_type(){
                                      std::vector<int>::const_reference>);
 }
 
+void test_vector_default_constructor(){
+    static_assert(
+        std::is_nothrow_default_constructible_v<c20_stl::vector<int>>
+        == std::is_nothrow_default_constructible_v<std::vector<int>>
+    );
+
+    c20_stl::vector<int> value;
+    std::vector<int> std_value;
+}
+
+void test_vector_empty(){
+    const c20_stl::vector<int> value;
+    const std::vector<int> std_value;
+
+    static_assert(c20_stl::is_same_v<decltype(value.empty()),
+                                     decltype(std_value.empty())>);
+    static_assert(noexcept(value.empty()) == noexcept(std_value.empty()));
+
+    assert(value.empty());
+    assert(value.empty() == std_value.empty());
+}
+
 }
 
 int main() {
     c20_stl::test_vector_type();
+    c20_stl::test_vector_default_constructor();
+    c20_stl::test_vector_empty();
 
 }

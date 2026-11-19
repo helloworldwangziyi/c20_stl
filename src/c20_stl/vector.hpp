@@ -19,8 +19,23 @@ public:
     using reference = typename allocator_type::reference;
     using const_reference = typename allocator_type::const_reference;
 
+    // 默认构造
+    vector() noexcept : allocator_(), start_(nullptr) , finish_(nullptr), end_of_storage_(nullptr) {}
+
+
+    bool empty() const noexcept {
+        return start_ == finish_;
+    }
+
+
 
 private:
+
+    allocator_type allocator_;
+
+    pointer start_;
+    pointer finish_;
+    pointer end_of_storage_;
 
 };
 
