@@ -1,6 +1,7 @@
 #include <cassert>
 #include <memory>
 #include <type_traits>
+#include <vector>
 #include <c20_stl/memory.hpp>
 
 namespace c20_stl{
@@ -68,7 +69,22 @@ struct move_only_object {
 };
 
 void test_allocator(){
-    static_assert(std::is_same_v<allocator<int>::value_type, int>);
+    using std_allocator_traits = std::allocator_traits<std::allocator<int>>;
+
+    static_assert(std::is_same_v<allocator<int>::value_type,
+                                 std_allocator_traits::value_type>);
+    static_assert(std::is_same_v<allocator<int>::pointer,
+                                 std_allocator_traits::pointer>);
+    static_assert(std::is_same_v<allocator<int>::const_pointer,
+                                 std_allocator_traits::const_pointer>);
+    static_assert(std::is_same_v<allocator<int>::reference,
+                                 std::vector<int>::reference>);
+    static_assert(std::is_same_v<allocator<int>::const_reference,
+                                 std::vector<int>::const_reference>);
+    static_assert(std::is_same_v<allocator<int>::size_type,
+                                 std_allocator_traits::size_type>);
+    static_assert(std::is_same_v<allocator<int>::difference_type,
+                                 std_allocator_traits::difference_type>);
     static_assert(std::is_convertible_v<allocator<int>, allocator<double>>);
 
     allocator<int> int_allocator;

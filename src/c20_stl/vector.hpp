@@ -1,4 +1,30 @@
 #ifndef C20_STL_VECTOR_HPP
 #define C20_STL_VECTOR_HPP
+#include <cstddef>
+#include <c20_stl/memory.hpp>
+
+namespace c20_stl{
+
+template <typename T>
+class vector{
+public:
+
+    using allocator_type = allocator<T>;
+
+    using value_type = typename allocator_type::value_type;
+    using size_type = typename allocator_type::size_type;
+    using difference_type = typename allocator_type::difference_type;
+    using pointer = typename allocator_type::pointer;
+    using const_pointer = typename allocator_type::const_pointer;
+    using reference = typename allocator_type::reference;
+    using const_reference = typename allocator_type::const_reference;
+
+
+private:
+
+};
+
+
+}
 
 #endif
