@@ -27,6 +27,14 @@ public:
         return start_ == finish_;
     }
 
+    size_type size() const noexcept {
+        return static_cast<size_type>(finish_ - start_);
+    }
+
+    size_type capacity() const noexcept {
+        return static_cast<size_type>(end_of_storage_ - start_);
+    }
+
 
 
 private:

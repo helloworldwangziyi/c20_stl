@@ -47,11 +47,39 @@ void test_vector_empty(){
     assert(value.empty() == std_value.empty());
 }
 
+void test_vector_size(){
+    const c20_stl::vector<int> value;
+    const std::vector<int> std_value;
+
+    static_assert(c20_stl::is_same_v<decltype(value.size()),
+                                     decltype(std_value.size())>);
+    static_assert(noexcept(value.size()) == noexcept(std_value.size()));
+
+    assert(value.size() == 0);
+    assert(value.size() == std_value.size());
+    assert(value.empty() == (value.size() == 0));
+}
+
+void test_vector_capacity(){
+    const c20_stl::vector<int> value;
+    const std::vector<int> std_value;
+
+    static_assert(c20_stl::is_same_v<decltype(value.capacity()),
+                                     decltype(std_value.capacity())>);
+    static_assert(noexcept(value.capacity()) == noexcept(std_value.capacity()));
+
+    assert(value.capacity() == 0);
+    assert(value.capacity() == std_value.capacity());
+    assert(value.capacity() >= value.size());
+}
+
 }
 
 int main() {
     c20_stl::test_vector_type();
     c20_stl::test_vector_default_constructor();
     c20_stl::test_vector_empty();
+    c20_stl::test_vector_size();
+    c20_stl::test_vector_capacity();
 
 }
