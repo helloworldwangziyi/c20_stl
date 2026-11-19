@@ -6,6 +6,21 @@
 
 namespace c20_stl{
 
+class Item {
+public:
+    int v;
+    inline static int constructions = 0;
+    inline static int destructions = 0;
+
+    Item(int val) : v(val){
+        ++constructions;
+    }
+
+    ~Item(){
+        ++destructions;
+    }
+};
+
 void test_vector_type(){
     static_assert(c20_stl::is_same_v<c20_stl::vector<int>::value_type, int>);
     static_assert(c20_stl::is_same_v<c20_stl::vector<int>::allocator_type, c20_stl::allocator<int>>);
@@ -73,6 +88,24 @@ void test_vector_capacity(){
     assert(value.capacity() >= value.size());
 }
 
+void test_vector_destroy(){
+    static_assert(
+        std::is_nothrow_destructible_v<c20_stl::vector<int>>
+        == std::is_nothrow_destructible_v<std::vector<int>>
+    );
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        c20_stl::vector<Item> value;
+    }
+
+    assert(Item::constructions == 0);
+    assert(Item::destructions == 0);
+
+}
+
 }
 
 int main() {
@@ -81,5 +114,6 @@ int main() {
     c20_stl::test_vector_empty();
     c20_stl::test_vector_size();
     c20_stl::test_vector_capacity();
+    c20_stl::test_vector_destroy();
 
 }

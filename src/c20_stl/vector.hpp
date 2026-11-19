@@ -22,6 +22,20 @@ public:
     // 默认构造
     vector() noexcept : allocator_(), start_(nullptr) , finish_(nullptr), end_of_storage_(nullptr) {}
 
+    // 析构
+    ~vector() noexcept {
+        pointer current_ = start_;
+        while(current_ != finish_){
+            destroy_at(current_);
+            ++current_;
+        }
+
+        if(start_ != nullptr){
+            allocator_.deallocate(start_, capacity());
+        }
+    }
+
+
 
     bool empty() const noexcept {
         return start_ == finish_;
