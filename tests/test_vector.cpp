@@ -205,6 +205,42 @@ void test_vector_fill_exception(){
     assert(ThrowingItem::alive == 0);
 }
 
+void test_vector_data(){
+    c20_stl::vector<int> value(4, 7);
+    std::vector<int> std_value(4, 7);
+
+    static_assert(c20_stl::is_same_v<
+        decltype(value.data()),
+        decltype(std_value.data())>);
+
+    static_assert(noexcept(value.data()) ==
+        noexcept(std_value.data()));
+
+    const auto &const_value = value;
+    const auto &std_const_value = std_value;
+
+    static_assert(c20_stl::is_same_v<decltype(const_value.data()),
+                                     decltype(std_const_value.data())>);
+    static_assert(noexcept(const_value.data()) ==
+                  noexcept(std_const_value.data()));
+
+    for (c20_stl::vector<int>::size_type i = 0; i < value.size(); ++i) {
+        assert(value.data()[i] == std_value.data()[i]);
+    }
+
+    value.data()[1] = 42;
+    std_value.data()[1] = 42;
+
+    assert(value.data()[1] == std_value.data()[1]);
+    assert(const_value.data()[1] == std_const_value.data()[1]);
+
+    c20_stl::vector<int> empty_value;
+    const c20_stl::vector<int> zero_value(0, 7);
+
+    assert(empty_value.data() == nullptr);
+    assert(zero_value.data() == nullptr);
+}
+
 }
 
 int main() {
@@ -217,5 +253,6 @@ int main() {
     c20_stl::test_vector_fill_constructor();
     c20_stl::test_vector_fill_lifecycle();
     c20_stl::test_vector_fill_exception();
+    c20_stl::test_vector_data();
 
 }

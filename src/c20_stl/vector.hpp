@@ -84,12 +84,16 @@ public:
         return static_cast<size_type>(end_of_storage_ - start_);
     }
 
+    pointer data() noexcept{
+        return start_;
+    }
 
+    const_pointer data() const noexcept{
+        return start_;
+    }
 
 private:
-
     allocator_type allocator_;
-
     pointer start_;
     pointer finish_;
     pointer end_of_storage_;
