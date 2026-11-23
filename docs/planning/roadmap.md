@@ -70,6 +70,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
   - ✅ `empty` / `size` / `capacity`
   - ✅ `data`：const/非 const 双重载，覆盖元素读写、空容器及 std 类型/noexcept 对照
   - ✅ `operator[]`：const/非 const 双重载，覆盖引用读写及 std 类型/noexcept 对照
+  - ✅ `front` / `back`：const/非 const 重载，覆盖首尾引用读写、单元素及 std 对照
 - ⬜ 关键概念：RAII 五法则、扩容策略、异常安全（移动不 noexcept 时退拷贝）
 - ⬜ `algobase`：`copy` / `fill` / `max` / `min` / `lexicographical_compare`
 - ⬜ 验收：每个操作与 `std::vector` 逐条对照，`ctest` 全绿
@@ -166,3 +167,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-23 | `vector` 填充构造毕业：支持零元素与拷贝构造，构造异常时回滚已构造元素并释放内存；补齐生命周期计数及 std 对照，全量 `ctest` 绿 |
 | 2026-11-23 | `vector::data` 毕业：const/非 const 双重载，覆盖元素读写、空容器及 std 类型/noexcept 对照；全量 `ctest` 绿 |
 | 2026-11-23 | `vector::operator[]` 毕业：const/非 const 双重载，验证元素读取、引用修改及 std 类型/noexcept 对照；全量 `ctest` 绿 |
+| 2026-11-23 | `vector::front`/`back` 毕业：覆盖首尾元素引用读写、const 重载、单元素及 std 类型/noexcept 对照；全量 `ctest` 绿 |

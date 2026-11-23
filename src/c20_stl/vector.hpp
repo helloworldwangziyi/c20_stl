@@ -98,6 +98,22 @@ public:
         return *(start_ + pos);
     }
 
+    reference front() noexcept{
+        return *start_;
+    }
+
+    const_reference front() const noexcept {
+        return *start_;
+    }
+
+    reference back() noexcept{
+        return *(finish_ - 1);
+    }
+
+    const_reference back() const noexcept {
+        return *(finish_ - 1);
+    }
+
 private:
     allocator_type allocator_;
     pointer start_;

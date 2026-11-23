@@ -276,6 +276,62 @@ void test_vector_subscript(){
     assert(value[0] == std_value[0]);
 }
 
+void test_vector_front_back(){
+    c20_stl::vector<int> val(4, 6);
+    std::vector<int> std_val(4, 6);
+
+    for(c20_stl::vector<int>::size_type i = 0; i < val.size(); ++i){
+        val[i] = static_cast<int>((i + 1) * 10);
+        std_val[i] = val[i];
+    }
+
+    for(c20_stl::vector<int>::size_type i = 0; i < val.size(); ++i){
+        assert(val[i] == std_val[i]);
+        assert(val[i] == (i + 1) * 10);
+    }
+
+    static_assert(c20_stl::is_same_v<decltype(val.front()),
+                                     decltype(std_val.front())>);
+    static_assert(c20_stl::is_same_v<decltype(val.back()),
+                                     decltype(std_val.back())>);
+    static_assert(noexcept(val.front()) == noexcept(std_val.front()));
+    static_assert(noexcept(val.back()) == noexcept(std_val.back()));
+
+    const auto& const_val = val;
+    const auto& std_const_val = std_val;
+
+    static_assert(c20_stl::is_same_v<decltype(const_val.front()),
+                                     decltype(std_const_val.front())>);
+    static_assert(c20_stl::is_same_v<decltype(const_val.back()),
+                                     decltype(std_const_val.back())>);
+    static_assert(noexcept(const_val.front()) ==
+                  noexcept(std_const_val.front()));
+    static_assert(noexcept(const_val.back()) ==
+                  noexcept(std_const_val.back()));
+
+    assert(val.front() == std_val.front());
+    assert(val.back() == std_val.back());
+
+    val.front() = 100;
+    std_val.front() = 100;
+    val.back() = 400;
+    std_val.back() = 400;
+
+    assert(val[0] == 100);
+    assert(val[3] == 400);
+    assert(val[0] == std_val[0]);
+    assert(val[3] == std_val[3]);
+    assert(const_val.front() == std_const_val.front());
+    assert(const_val.back() == std_const_val.back());
+
+    c20_stl::vector<int> single(1, 7);
+    std::vector<int> std_single(1, 7);
+
+    assert(single.front() == std_single.front());
+    assert(single.back() == std_single.back());
+    assert(&single.front() == &single.back());
+}
+
 }
 
 int main() {
@@ -290,5 +346,5 @@ int main() {
     c20_stl::test_vector_fill_exception();
     c20_stl::test_vector_data();
     c20_stl::test_vector_subscript();
-
+    c20_stl::test_vector_front_back();
 }
