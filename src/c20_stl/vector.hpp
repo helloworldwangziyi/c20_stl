@@ -22,6 +22,41 @@ public:
     // 默认构造
     vector() noexcept : allocator_(), start_(nullptr) , finish_(nullptr), end_of_storage_(nullptr) {}
 
+    // 填充构造
+    vector(size_type count, const T& other)
+    : allocator_(),
+      start_(nullptr),
+      finish_(nullptr),
+      end_of_storage_(nullptr)
+    {
+        if(count == 0) {
+            return;
+        }
+        // 分配内存
+        start_ = allocator_.allocate(count);
+        end_of_storage_ = start_ + count;
+        finish_ = start_;
+
+        try{
+            for(size_type i = 0; i < count; ++i){
+                construct_at(finish_, other);
+                ++finish_;
+            }
+        } catch(...){
+            while(finish_ != start_){
+                --finish_;
+                destroy_at(finish_);
+            }
+            allocator_.deallocate(start_, count);
+
+            start_ = nullptr;
+            finish_ = nullptr;
+            end_of_storage_ = nullptr;
+            throw;
+        }
+
+    }
+
     // 析构
     ~vector() noexcept {
         pointer current_ = start_;

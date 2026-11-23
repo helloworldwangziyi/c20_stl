@@ -16,8 +16,32 @@ public:
         ++constructions;
     }
 
+    Item(const Item& other) : v(other.v){
+        ++constructions;
+    }
+
     ~Item(){
         ++destructions;
+    }
+};
+
+class ThrowingItem{
+public:
+    inline static int alive = 0;
+    inline static int copies_before_throw = 0;
+
+    ThrowingItem(){++alive;}
+
+    ThrowingItem(const ThrowingItem&){
+        if(copies_before_throw == 0){
+            throw 42;
+        }
+        --copies_before_throw;
+        ++alive;
+    }
+
+    ~ThrowingItem(){
+        --alive;
     }
 };
 
@@ -100,10 +124,85 @@ void test_vector_destroy(){
     {
         c20_stl::vector<Item> value;
     }
-
     assert(Item::constructions == 0);
     assert(Item::destructions == 0);
+}
 
+void test_vector_fill_constructor(){
+    const c20_stl::vector<int> value(4, 7);
+    const std::vector<int> std_value(4, 7);
+
+    assert(value.empty() == std_value.empty());
+    assert(value.size() == std_value.size());
+    assert(value.capacity() == 4);
+
+    const c20_stl::vector<int> empty_value(0, 7);
+    const std::vector<int> std_empty_value(0, 7);
+
+    assert(empty_value.empty() == std_empty_value.empty());
+    assert(empty_value.size() == std_empty_value.size());
+    assert(empty_value.capacity() == 0);
+}
+
+void test_vector_fill_lifecycle(){
+    Item other(42);
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        c20_stl::vector<Item> value(3, other);
+
+        assert(Item::constructions == 3);
+        assert(Item::destructions == 0);
+    }
+
+    const int c20_constructions = Item::constructions;
+    const int c20_destructions = Item::destructions;
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        std::vector<Item> std_value(3, other);
+    }
+
+    assert(c20_constructions == Item::constructions);
+    assert(c20_destructions == Item::destructions);
+    assert(c20_constructions == 3);
+    assert(c20_destructions == 3);
+}
+
+void test_vector_fill_exception(){
+    ThrowingItem::alive = 0;
+    {
+        ThrowingItem other;
+
+        ThrowingItem::copies_before_throw = 2;
+        bool c20_threw = false;
+
+        try{
+            c20_stl::vector<ThrowingItem> value(5, other);
+        }
+        catch(int){
+            c20_threw = true;
+        }
+        assert(c20_threw);
+        assert(ThrowingItem::alive == 1);
+
+        ThrowingItem::copies_before_throw = 2;
+        bool std_threw = false;
+
+        try {
+            std::vector<ThrowingItem> value(5, other);
+        } catch(int) {
+            std_threw = true;
+        }
+
+        assert(std_threw == c20_threw);
+        assert(ThrowingItem::alive == 1);
+    }
+    assert(ThrowingItem::alive == 0);
 }
 
 }
@@ -115,5 +214,8 @@ int main() {
     c20_stl::test_vector_size();
     c20_stl::test_vector_capacity();
     c20_stl::test_vector_destroy();
+    c20_stl::test_vector_fill_constructor();
+    c20_stl::test_vector_fill_lifecycle();
+    c20_stl::test_vector_fill_exception();
 
 }
