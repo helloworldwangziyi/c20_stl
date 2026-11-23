@@ -70,8 +70,6 @@ public:
         }
     }
 
-
-
     bool empty() const noexcept {
         return start_ == finish_;
     }
@@ -90,6 +88,14 @@ public:
 
     const_pointer data() const noexcept{
         return start_;
+    }
+
+    reference operator[](size_type pos) noexcept {
+        return *(start_ + pos);
+    }
+
+    const_reference operator[](size_type pos) const noexcept{
+        return *(start_ + pos);
     }
 
 private:
