@@ -399,6 +399,14 @@ void test_vector_at(){
     std::vector<int> std_v{10, 20, 30, 40};
 
     static_assert(c20_stl::is_same_v<decltype(v.at(1)), decltype(std_v.at(1))>);
+    static_assert(noexcept(v.at(0)) == noexcept(std_v.at(0)));
+
+    const auto& const_v = v;
+    const auto& std_const_v = std_v;
+
+    static_assert(c20_stl::is_same_v<
+        decltype(const_v.at(1)), decltype(std_const_v.at(1))>);
+    static_assert(noexcept(const_v.at(0)) == noexcept(std_const_v.at(0)));
 
     assert(v.at(0) == 10);
     assert(v.at(2) == 30);
@@ -406,30 +414,56 @@ void test_vector_at(){
     assert(v.at(0) == std_v.at(0));
     assert(v.at(2) == std_v.at(2));
     assert(v.at(3) == std_v.at(3));
+
+    assert(const_v.at(0) == std_const_v.at(0));
+    assert(const_v.at(2) == std_const_v.at(2));
+    assert(const_v.at(3) == std_const_v.at(3));
+
+    assert(&v.at(1) == &v[1]);
+    assert(&std_v.at(1) == &std_v[1]);
+
+    v.at(1) = 42;
+    std_v.at(1) = 42;
+
+    assert(v[1] == 42);
+    assert(v[1] == std_v[1]);
+    assert(const_v.at(1) == std_const_v.at(1));
 }
 
 void test_vector_at_out_of_range(){
     c20_stl::vector<int> value(3, 7);
     std::vector<int> std_value(3, 7);
 
-    bool c20_threw = false;
-    try{
-        (void)value.at(value.size());
-    }
-    catch(const std::out_of_range&){
-        c20_threw = true;
-    }
+    auto throws_out_of_range = [](auto& vec, std::size_t pos){
+        try{
+            (void)vec.at(pos);
+        }
+        catch(const std::out_of_range&){
+            return true;
+        }
+        return false;
+    };
 
-    bool std_threw = false;
-    try{
-        (void)std_value.at(std_value.size());
-    }
-    catch(const std::out_of_range&){
-        std_threw = true;
-    }
+    const auto original_size = value.size();
+    const auto original_capacity = value.capacity();
 
-    assert(c20_threw);
-    assert(std_threw);
+    assert(throws_out_of_range(value, value.size()));
+    assert(throws_out_of_range(std_value, std_value.size()));
+    assert(throws_out_of_range(value, value.size() + 1));
+    assert(throws_out_of_range(std_value, std_value.size() + 1));
+
+    c20_stl::vector<int> empty_value;
+    std::vector<int> std_empty_value;
+
+    assert(throws_out_of_range(empty_value, 0));
+    assert(throws_out_of_range(std_empty_value, 0));
+
+    assert(value.size() == original_size);
+    assert(value.capacity() == original_capacity);
+
+    for(c20_stl::vector<int>::size_type i = 0; i < value.size(); ++i){
+        assert(value[i] == std_value[i]);
+    }
 }
 
 
@@ -445,13 +479,35 @@ void test_vector_begin_end(){
                   noexcept(std_value.begin()));
     static_assert(noexcept(value.end()) ==
                   noexcept(std_value.end()));
+    static_assert(c20_stl::is_same_v<
+        decltype(value.end() - value.begin()), std::ptrdiff_t>);
+
+    const auto& const_value = value;
+    const auto& std_const_value = std_value;
+
+    static_assert(c20_stl::is_same_v<
+        decltype(*const_value.begin()),
+        decltype(*std_const_value.begin())>);
+    static_assert(c20_stl::is_same_v<
+        decltype(const_value.begin()), c20_stl::vector<int>::const_iterator>);
+    static_assert(c20_stl::is_same_v<
+        decltype(const_value.end()), c20_stl::vector<int>::const_iterator>);
+    static_assert(noexcept(const_value.begin()) ==
+                  noexcept(std_const_value.begin()));
+    static_assert(noexcept(const_value.end()) ==
+                  noexcept(std_const_value.end()));
+
+    static_assert(std::is_assignable_v<decltype(*value.begin()), int> ==
+                  std::is_assignable_v<decltype(*std_value.begin()), int>);
+    static_assert(std::is_assignable_v<decltype(*const_value.begin()), int> ==
+                  std::is_assignable_v<decltype(*std_const_value.begin()), int>);
 
     assert(value.end() - value.begin() ==
            std_value.end() - std_value.begin());
     assert(value.end() - value.begin() == value.size());
     assert(value.end() - value.begin() == 4);
-    static_assert(c20_stl::is_same_v<
-        decltype(value.end() - value.begin()), std::ptrdiff_t>);
+    assert(const_value.end() - const_value.begin() ==
+           std_const_value.end() - std_const_value.begin());
 
     assert(*value.begin() == *std_value.begin());
     assert(*(value.end() - 1) == *(std_value.end() - 1));
@@ -463,13 +519,105 @@ void test_vector_begin_end(){
         assert(*it == *std_it);
     }
 
+    assert(it == value.end());
     assert(std_it == std_value.end());
+
+    auto const_it = const_value.begin();
+    auto std_const_it = std_const_value.begin();
+
+    for(; const_it != const_value.end(); ++const_it, ++std_const_it){
+        assert(*const_it == *std_const_it);
+    }
+
+    assert(const_it == const_value.end());
+    assert(std_const_it == std_const_value.end());
+
+    std::size_t count = 0;
+    int sum = 0;
+    for(int element : value){
+        ++count;
+        sum += element;
+    }
+
+    std::size_t std_count = 0;
+    int std_sum = 0;
+    for(int element : std_value){
+        ++std_count;
+        std_sum += element;
+    }
+
+    assert(count == value.size());
+    assert(count == std_count);
+    assert(sum == std_sum);
 
     *value.begin() = 100;
     *std_value.begin() = 100;
 
     assert(value.front() == 100);
     assert(value.front() == std_value.front());
+
+    c20_stl::vector<int> single{7};
+    std::vector<int> std_single{7};
+
+    assert(single.begin() != single.end());
+    assert(single.end() - single.begin() == 1);
+    assert(single.end() - single.begin() ==
+           std_single.end() - std_single.begin());
+
+    std::size_t single_count = 0;
+    for(auto single_it = single.begin(); single_it != single.end(); ++single_it){
+        ++single_count;
+        assert(*single_it == *std_single.begin());
+    }
+    assert(single_count == 1);
+
+    c20_stl::vector<int> empty_value;
+    std::vector<int> std_empty_value;
+
+    assert(empty_value.begin() == empty_value.end());
+    assert(std_empty_value.begin() == std_empty_value.end());
+
+    const auto& const_empty_value = empty_value;
+    assert(const_empty_value.begin() == const_empty_value.end());
+}
+
+void test_vector_const_iterators(){
+    c20_stl::vector<int> value{10, 20, 30, 40};
+    std::vector<int> std_value{10, 20, 30, 40};
+
+    static_assert(c20_stl::is_same_v<
+        decltype(value.cbegin()), c20_stl::vector<int>::const_iterator>);
+    static_assert(c20_stl::is_same_v<
+        decltype(value.cend()), c20_stl::vector<int>::const_iterator>);
+    static_assert(c20_stl::is_same_v<
+        decltype(*value.cbegin()), decltype(*std_value.cbegin())>);
+    static_assert(noexcept(value.cbegin()) == noexcept(std_value.cbegin()));
+    static_assert(noexcept(value.cend()) == noexcept(std_value.cend()));
+
+    static_assert(std::is_assignable_v<decltype(*value.cbegin()), int> ==
+                  std::is_assignable_v<decltype(*std_value.cbegin()), int>);
+
+    assert(value.cend() - value.cbegin() == value.size());
+    assert(value.cend() - value.cbegin() ==
+           std_value.cend() - std_value.cbegin());
+    assert(*value.cbegin() == *std_value.cbegin());
+    assert(*(value.cend() - 1) == *(std_value.cend() - 1));
+
+    auto it = value.cbegin();
+    auto std_it = std_value.cbegin();
+
+    for(; it != value.cend(); ++it, ++std_it){
+        assert(*it == *std_it);
+    }
+
+    assert(it == value.cend());
+    assert(std_it == std_value.cend());
+
+    c20_stl::vector<int> empty_value;
+    std::vector<int> std_empty_value;
+
+    assert(empty_value.cbegin() == empty_value.cend());
+    assert(std_empty_value.cbegin() == std_empty_value.cend());
 }
 
 }
@@ -493,4 +641,5 @@ int main() {
     c20_stl::test_vector_at();
     c20_stl::test_vector_at_out_of_range();
     c20_stl::test_vector_begin_end();
+    c20_stl::test_vector_const_iterators();
 }

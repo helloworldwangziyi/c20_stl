@@ -72,7 +72,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
   - ✅ `data`：const/非 const 双重载，覆盖元素读写、空容器及 std 类型/noexcept 对照
   - ✅ `operator[]`：const/非 const 双重载，覆盖引用读写及 std 类型/noexcept 对照
   - ✅ `front` / `back`：const/非 const 重载，覆盖首尾引用读写、单元素及 std 对照
-  - ⬜ `at` / `begin` / `end` / `cbegin` / `cend`：基础实现及部分 std 对照完成，const、空容器和完整边界测试待补
+  - ✅ `at` / `begin` / `end` / `cbegin` / `cend`：覆盖 const 正确性、越界异常、引用读写、正向遍历、单/空容器及 std 对照
 - ⬜ 关键概念：RAII 五法则、扩容策略、异常安全（移动不 noexcept 时退拷贝）
 - ⬜ `algobase`：`copy` / `fill` / `max` / `min` / `lexicographical_compare`
 - ⬜ 验收：每个操作与 `std::vector` 逐条对照，`ctest` 全绿
@@ -172,3 +172,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-23 | `vector::front`/`back` 毕业：覆盖首尾元素引用读写、const 重载、单元素及 std 类型/noexcept 对照；全量 `ctest` 绿 |
 | 2026-11-24 | `vector` 初始化列表构造毕业：支持不同元素列表与空列表，拷贝构造异常时回滚已构造元素并释放内存；补齐生命周期及 std 对照，全量 `ctest` 绿 |
 | 2026-11-24 | `vector` 增加 `at` 与正向迭代器基础实现：越界异常、非 const 遍历及部分 std 对照通过；const、空容器和 `cbegin`/`cend` 测试待补 |
+| 2026-11-24 | `vector` 访问与正向迭代器测试收尾：补齐 `at` const/引用写入/三类越界与状态不变，`begin`/`end` const/范围 for/单空容器及 `cbegin`/`cend` 只读遍历；全量 `ctest` 绿 |
