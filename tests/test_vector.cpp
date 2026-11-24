@@ -5,6 +5,7 @@
 #include <c20_stl/vector.hpp>
 #include <c20_stl/type_traits.hpp>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace c20_stl{
@@ -47,6 +48,15 @@ public:
         --alive;
     }
 };
+
+template<typename Lhs, typename Rhs>
+void assert_same_elements(const Lhs& value, const Rhs& std_value){
+    assert(value.size() == std_value.size());
+
+    for(std::size_t i = 0; i < value.size(); ++i){
+        assert(value[i] == std_value[i]);
+    }
+}
 
 void test_vector_type(){
     static_assert(c20_stl::is_same_v<c20_stl::vector<int>::value_type, int>);
@@ -620,6 +630,293 @@ void test_vector_const_iterators(){
     assert(std_empty_value.cbegin() == std_empty_value.cend());
 }
 
+void test_vector_swap(){
+    c20_stl::vector<int> value{1, 2};
+    c20_stl::vector<int> other{10, 20, 30};
+    std::vector<int> std_value{1, 2};
+    std::vector<int> std_other{10, 20, 30};
+
+    static_assert(noexcept(value.swap(other)) ==
+                  noexcept(std_value.swap(std_other)));
+
+    auto* value_data = value.data();
+    auto* other_data = other.data();
+
+    value.swap(other);
+    std_value.swap(std_other);
+
+    assert(value.data() == other_data);
+    assert(other.data() == value_data);
+    assert_same_elements(value, std_value);
+    assert_same_elements(other, std_other);
+
+    value.swap(value);
+    std_value.swap(std_value);
+    assert_same_elements(value, std_value);
+
+    c20_stl::vector<int> empty_value;
+    c20_stl::vector<int> single{7};
+    std::vector<int> std_empty_value;
+    std::vector<int> std_single{7};
+
+    empty_value.swap(single);
+    std_empty_value.swap(std_single);
+
+    assert_same_elements(empty_value, std_empty_value);
+    assert(single.empty());
+    assert(std_single.empty());
+}
+
+void test_vector_move_constructor(){
+    static_assert(std::is_nothrow_move_constructible_v<c20_stl::vector<int>> ==
+                  std::is_nothrow_move_constructible_v<std::vector<int>>);
+
+    c20_stl::vector<int> source{10, 20, 30};
+    std::vector<int> std_source{10, 20, 30};
+
+    auto* source_data = source.data();
+    const auto source_size = source.size();
+    const auto source_capacity = source.capacity();
+
+    c20_stl::vector<int> value(c20_stl::move(source));
+    std::vector<int> std_value(std::move(std_source));
+
+    assert(value.data() == source_data);
+    assert(value.size() == source_size);
+    assert(value.capacity() == source_capacity);
+    assert(source.empty());
+    assert(source.data() == nullptr);
+    assert_same_elements(value, std_value);
+
+    c20_stl::vector<int> empty_source;
+    c20_stl::vector<int> empty_value(c20_stl::move(empty_source));
+
+    assert(empty_value.empty());
+    assert(empty_value.data() == nullptr);
+    assert(empty_source.empty());
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+    {
+        c20_stl::vector<Item> item_source{Item(1), Item(2)};
+        const auto constructions_before_move = Item::constructions;
+
+        c20_stl::vector<Item> item_value(c20_stl::move(item_source));
+
+        assert(Item::constructions == constructions_before_move);
+        assert(item_source.empty());
+    }
+    assert(Item::constructions == Item::destructions);
+}
+
+void test_vector_copy_constructor(){
+    static_assert(std::is_copy_constructible_v<c20_stl::vector<int>> ==
+                  std::is_copy_constructible_v<std::vector<int>>);
+    static_assert(std::is_nothrow_copy_constructible_v<c20_stl::vector<int>> ==
+                  std::is_nothrow_copy_constructible_v<std::vector<int>>);
+
+    const c20_stl::vector<int> source{10, 20, 30};
+    const std::vector<int> std_source{10, 20, 30};
+
+    c20_stl::vector<int> value(source);
+    std::vector<int> std_value(std_source);
+
+    assert(value.data() != source.data());
+    assert(std_value.data() != std_source.data());
+    assert_same_elements(value, std_value);
+
+    assert(source[0] == 10);
+    assert(source[1] == 20);
+    assert(source[2] == 30);
+
+    value[0] = 99;
+    std_value[0] = 99;
+
+    assert(source[0] == 10);
+    assert_same_elements(value, std_value);
+
+    c20_stl::vector<int> empty_source;
+    c20_stl::vector<int> empty_value(empty_source);
+
+    assert(empty_value.empty());
+    assert(empty_value.data() == nullptr);
+}
+
+void test_vector_move_assignment(){
+    static_assert(std::is_nothrow_move_assignable_v<c20_stl::vector<int>> ==
+                  std::is_nothrow_move_assignable_v<std::vector<int>>);
+
+    c20_stl::vector<int> target{1, 2};
+    c20_stl::vector<int> source{10, 20, 30};
+    std::vector<int> std_target{1, 2};
+    std::vector<int> std_source{10, 20, 30};
+
+    static_assert(c20_stl::is_same_v<
+        decltype(target = c20_stl::move(source)), c20_stl::vector<int>&>);
+
+    auto* source_data = source.data();
+    auto& result = (target = c20_stl::move(source));
+    auto& std_result = (std_target = std::move(std_source));
+
+    assert(&result == &target);
+    assert(&std_result == &std_target);
+    assert(target.data() == source_data);
+    assert(source.empty());
+    assert(source.data() == nullptr);
+    assert_same_elements(target, std_target);
+
+    auto* target_data = target.data();
+    target = c20_stl::move(target);
+
+    assert(target.data() == target_data);
+    assert_same_elements(target, std_target);
+
+    c20_stl::vector<int> empty_source;
+    std::vector<int> std_empty_source;
+
+    target = c20_stl::move(empty_source);
+    std_target = std::move(std_empty_source);
+
+    assert(target.empty());
+    assert(target.data() == nullptr);
+    assert(std_target.empty());
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+    {
+        c20_stl::vector<Item> item_target{Item(1), Item(2)};
+        c20_stl::vector<Item> item_source{Item(3)};
+        const auto constructions_before_move = Item::constructions;
+
+        item_target = c20_stl::move(item_source);
+
+        assert(Item::constructions == constructions_before_move);
+        assert(item_source.empty());
+    }
+    assert(Item::constructions == Item::destructions);
+}
+
+void test_vector_copy_assignment(){
+    static_assert(std::is_copy_assignable_v<c20_stl::vector<int>> ==
+                  std::is_copy_assignable_v<std::vector<int>>);
+    static_assert(std::is_nothrow_copy_assignable_v<c20_stl::vector<int>> ==
+                  std::is_nothrow_copy_assignable_v<std::vector<int>>);
+
+    c20_stl::vector<int> target{1, 2};
+    c20_stl::vector<int> source{10, 20, 30};
+    std::vector<int> std_target{1, 2};
+    std::vector<int> std_source{10, 20, 30};
+
+    static_assert(c20_stl::is_same_v<
+        decltype(target = source), c20_stl::vector<int>&>);
+
+    auto& result = (target = source);
+    auto& std_result = (std_target = std_source);
+
+    assert(&result == &target);
+    assert(&std_result == &std_target);
+    assert(target.data() != source.data());
+    assert(std_target.data() != std_source.data());
+    assert_same_elements(target, std_target);
+
+    target[0] = 100;
+    std_target[0] = 100;
+
+    assert(source[0] == 10);
+    assert_same_elements(target, std_target);
+
+    target = target;
+    std_target = std_target;
+    assert_same_elements(target, std_target);
+
+    c20_stl::vector<int> empty_source;
+    std::vector<int> std_empty_source;
+
+    target = empty_source;
+    std_target = std_empty_source;
+
+    assert(target.empty());
+    assert(target.data() == nullptr);
+    assert(std_target.empty());
+}
+
+void test_vector_copy_exception(){
+    ThrowingItem::alive = 0;
+    {
+        ThrowingItem other;
+
+        ThrowingItem::copies_before_throw = 5;
+        c20_stl::vector<ThrowingItem> source(5, other);
+
+        ThrowingItem::copies_before_throw = 5;
+        std::vector<ThrowingItem> std_source(5, other);
+
+        const int source_alive = ThrowingItem::alive;
+
+        ThrowingItem::copies_before_throw = 2;
+        bool c20_copy_threw = false;
+        try{
+            c20_stl::vector<ThrowingItem> copy(source);
+        }
+        catch(int){
+            c20_copy_threw = true;
+        }
+
+        assert(c20_copy_threw);
+        assert(ThrowingItem::alive == source_alive);
+
+        ThrowingItem::copies_before_throw = 2;
+        bool std_copy_threw = false;
+        try{
+            std::vector<ThrowingItem> std_copy(std_source);
+        }
+        catch(int){
+            std_copy_threw = true;
+        }
+
+        assert(std_copy_threw);
+        assert(ThrowingItem::alive == source_alive);
+
+        ThrowingItem::copies_before_throw = 2;
+        c20_stl::vector<ThrowingItem> target(2, other);
+
+        ThrowingItem::copies_before_throw = 2;
+        std::vector<ThrowingItem> std_target(2, other);
+
+        const int target_alive = ThrowingItem::alive;
+        auto* target_data = target.data();
+        const auto target_size = target.size();
+        const auto target_capacity = target.capacity();
+
+        ThrowingItem::copies_before_throw = 2;
+        bool c20_assign_threw = false;
+        try{
+            target = source;
+        }
+        catch(int){
+            c20_assign_threw = true;
+        }
+
+        assert(c20_assign_threw);
+        assert(ThrowingItem::alive == target_alive);
+        assert(target.data() == target_data);
+        assert(target.size() == target_size);
+        assert(target.capacity() == target_capacity);
+
+        ThrowingItem::copies_before_throw = 2;
+        bool std_assign_threw = false;
+        try{
+            std_target = std_source;
+        }
+        catch(int){
+            std_assign_threw = true;
+        }
+
+        assert(std_assign_threw);
+    }
+    assert(ThrowingItem::alive == 0);
+}
+
 }
 
 int main() {
@@ -642,4 +939,10 @@ int main() {
     c20_stl::test_vector_at_out_of_range();
     c20_stl::test_vector_begin_end();
     c20_stl::test_vector_const_iterators();
+    c20_stl::test_vector_swap();
+    c20_stl::test_vector_move_constructor();
+    c20_stl::test_vector_copy_constructor();
+    c20_stl::test_vector_move_assignment();
+    c20_stl::test_vector_copy_assignment();
+    c20_stl::test_vector_copy_exception();
 }

@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <c20_stl/memory.hpp>
+#include <c20_stl/util.hpp>
 
 namespace c20_stl{
 
@@ -94,7 +95,59 @@ public:
             end_of_storage_ = nullptr;
             throw;
         }
+    }
 
+    // 移动构造
+    vector(vector&& other) noexcept : vector() {
+        swap(other);
+    }
+
+    // 拷贝构造
+    vector(const vector& other) : vector() {
+        if(other.empty()){
+            return;
+        }
+
+        this->start_ = allocator_.allocate(other.size());
+        this->finish_ = start_;
+        this->end_of_storage_ = start_ + other.size();
+
+        try{
+            for(const auto& val : other){
+                construct_at(finish_, val);
+                ++finish_;
+            }
+        }
+        catch(...){
+            while(finish_ != start_){
+                --finish_;
+                destroy_at(finish_);
+            }
+            allocator_.deallocate(start_, other.size());
+
+            start_ = nullptr;
+            finish_ = nullptr;
+            end_of_storage_ = nullptr;
+            throw;
+        }
+    }
+
+    vector& operator=(const vector& other){
+        vector tmp(other);
+        swap(tmp);
+        return *this;
+    }
+
+    vector& operator=(vector&& other) noexcept{
+        vector tmp(c20_stl::move(other));
+        swap(tmp);
+        return *this;
+    }
+
+    void swap(vector& other) noexcept{
+        c20_stl::swap(start_, other.start_);
+        c20_stl::swap(finish_, other.finish_);
+        c20_stl::swap(end_of_storage_ ,other.end_of_storage_);
     }
 
     // 析构
