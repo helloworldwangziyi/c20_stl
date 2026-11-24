@@ -1,4 +1,7 @@
 #include <cassert>
+#include <cstddef>
+#include <initializer_list>
+#include <stdexcept>
 #include <c20_stl/vector.hpp>
 #include <c20_stl/type_traits.hpp>
 #include <type_traits>
@@ -205,6 +208,65 @@ void test_vector_fill_exception(){
     assert(ThrowingItem::alive == 0);
 }
 
+void test_vector_initializer_list_constructor(){
+    static_assert(std::is_constructible_v<c20_stl::vector<int>, std::initializer_list<int>> ==
+                  std::is_constructible_v<std::vector<int>, std::initializer_list<int>>);
+
+    c20_stl::vector<int> value{10, 20, 30, 40};
+    std::vector<int> std_value{10, 20, 30, 40};
+
+    assert(value.size() == std_value.size());
+    assert(value.capacity() == value.size());
+
+    for(c20_stl::vector<int>::size_type i = 0; i < value.size(); ++i){
+        assert(value[i] == std_value[i]);
+    }
+
+    const std::initializer_list<int> empty_values{};
+    c20_stl::vector<int> empty_value(empty_values);
+    std::vector<int> std_empty_value(empty_values);
+
+    assert(empty_value.empty());
+    assert(empty_value.size() == std_empty_value.size());
+    assert(empty_value.capacity() == 0);
+    assert(empty_value.data() == nullptr);
+}
+
+void test_vector_initializer_list_exception(){
+    ThrowingItem::alive = 0;
+    {
+        ThrowingItem other;
+        ThrowingItem::copies_before_throw = 10;
+        auto values = {other, other, other, other, other};
+        assert(ThrowingItem::alive == 6);
+
+        ThrowingItem::copies_before_throw = 2;
+        bool c20_threw = false;
+        try{
+            c20_stl::vector<ThrowingItem> value(values);
+        }
+        catch(int){
+            c20_threw = true;
+        }
+
+        assert(c20_threw);
+        assert(ThrowingItem::alive == 6);
+
+        ThrowingItem::copies_before_throw = 2;
+        bool std_threw = false;
+        try{
+            std::vector<ThrowingItem> value(values);
+        }
+        catch(int){
+            std_threw = true;
+        }
+
+        assert(std_threw);
+        assert(ThrowingItem::alive == 6);
+    }
+    assert(ThrowingItem::alive == 0);
+}
+
 void test_vector_data(){
     c20_stl::vector<int> value(4, 7);
     std::vector<int> std_value(4, 7);
@@ -332,6 +394,84 @@ void test_vector_front_back(){
     assert(&single.front() == &single.back());
 }
 
+void test_vector_at(){
+    c20_stl::vector<int> v{10, 20, 30, 40};
+    std::vector<int> std_v{10, 20, 30, 40};
+
+    static_assert(c20_stl::is_same_v<decltype(v.at(1)), decltype(std_v.at(1))>);
+
+    assert(v.at(0) == 10);
+    assert(v.at(2) == 30);
+    assert(v.at(3) == 40);
+    assert(v.at(0) == std_v.at(0));
+    assert(v.at(2) == std_v.at(2));
+    assert(v.at(3) == std_v.at(3));
+}
+
+void test_vector_at_out_of_range(){
+    c20_stl::vector<int> value(3, 7);
+    std::vector<int> std_value(3, 7);
+
+    bool c20_threw = false;
+    try{
+        (void)value.at(value.size());
+    }
+    catch(const std::out_of_range&){
+        c20_threw = true;
+    }
+
+    bool std_threw = false;
+    try{
+        (void)std_value.at(std_value.size());
+    }
+    catch(const std::out_of_range&){
+        std_threw = true;
+    }
+
+    assert(c20_threw);
+    assert(std_threw);
+}
+
+
+void test_vector_begin_end(){
+    c20_stl::vector<int> value{10, 20, 30, 40};
+    std::vector<int> std_value{10, 20, 30, 40};
+
+    static_assert(c20_stl::is_same_v<
+        decltype(*value.begin()),
+        decltype(*std_value.begin())>);
+
+    static_assert(noexcept(value.begin()) ==
+                  noexcept(std_value.begin()));
+    static_assert(noexcept(value.end()) ==
+                  noexcept(std_value.end()));
+
+    assert(value.end() - value.begin() ==
+           std_value.end() - std_value.begin());
+    assert(value.end() - value.begin() == value.size());
+    assert(value.end() - value.begin() == 4);
+    static_assert(c20_stl::is_same_v<
+        decltype(value.end() - value.begin()), std::ptrdiff_t>);
+
+    assert(*value.begin() == *std_value.begin());
+    assert(*(value.end() - 1) == *(std_value.end() - 1));
+
+    auto it = value.begin();
+    auto std_it = std_value.begin();
+
+    for(; it != value.end(); ++it, ++std_it){
+        assert(*it == *std_it);
+    }
+
+    assert(std_it == std_value.end());
+
+    *value.begin() = 100;
+    *std_value.begin() = 100;
+
+    assert(value.front() == 100);
+    assert(value.front() == std_value.front());
+}
+
 }
 
 int main() {
@@ -344,7 +484,13 @@ int main() {
     c20_stl::test_vector_fill_constructor();
     c20_stl::test_vector_fill_lifecycle();
     c20_stl::test_vector_fill_exception();
+    c20_stl::test_vector_initializer_list_constructor();
+    c20_stl::test_vector_initializer_list_exception();
     c20_stl::test_vector_data();
     c20_stl::test_vector_subscript();
     c20_stl::test_vector_front_back();
+
+    c20_stl::test_vector_at();
+    c20_stl::test_vector_at_out_of_range();
+    c20_stl::test_vector_begin_end();
 }
