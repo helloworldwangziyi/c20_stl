@@ -70,6 +70,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
   - ✅ `initializer_list` 构造：支持不同元素列表与空列表，拷贝异常时回滚，含生命周期及 std 对照
   - ✅ `swap` / 拷贝构造 / 移动构造 / 拷贝赋值 / 移动赋值：覆盖所有权转移、深拷贝、自赋值、空容器和异常回滚
   - ✅ `empty` / `size` / `capacity`
+  - ⬜ `max_size` / `reserve` / `pop_back`：基础接口落地，扩容主体和测试待补
   - ✅ `data`：const/非 const 双重载，覆盖元素读写、空容器及 std 类型/noexcept 对照
   - ✅ `operator[]`：const/非 const 双重载，覆盖引用读写及 std 类型/noexcept 对照
   - ✅ `front` / `back`：const/非 const 重载，覆盖首尾引用读写、单元素及 std 对照
@@ -175,3 +176,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-24 | `vector` 增加 `at` 与正向迭代器基础实现：越界异常、非 const 遍历及部分 std 对照通过；const、空容器和 `cbegin`/`cend` 测试待补 |
 | 2026-11-24 | `vector` 访问与正向迭代器测试收尾：补齐 `at` const/引用写入/三类越界与状态不变，`begin`/`end` const/范围 for/单空容器及 `cbegin`/`cend` 只读遍历；全量 `ctest` 绿 |
 | 2026-11-24 | `vector` 所有权接口毕业：`swap`、拷贝/移动构造与赋值覆盖深拷贝、资源接管、自赋值、空容器和异常安全；修复委托拷贝构造回滚后指针未置空导致的重复释放，全量 `ctest` 绿 |
+| 2026-11-24 | `vector` 容量阶段检查点：增加 `max_size`、空容器 `size`/`capacity` 保护、`reserve` 入口检查及 `pop_back`；扩容主体与测试待补，全量 `ctest` 绿 |

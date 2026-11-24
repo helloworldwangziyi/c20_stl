@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <stdexcept>
+#include <limits>
 #include <c20_stl/memory.hpp>
 #include <c20_stl/util.hpp>
 
@@ -168,11 +169,15 @@ public:
     }
 
     size_type size() const noexcept {
-        return static_cast<size_type>(finish_ - start_);
+        return start_ == nullptr
+             ? 0
+             : static_cast<size_type>(finish_ - start_);
     }
 
     size_type capacity() const noexcept {
-        return static_cast<size_type>(end_of_storage_ - start_);
+        return start_ == nullptr
+             ? 0
+             : static_cast<size_type>(end_of_storage_ - start_);
     }
 
     pointer data() noexcept{
@@ -243,6 +248,26 @@ public:
 
     const_iterator cend() const noexcept{
         return finish_;
+    }
+
+    size_type max_size() const noexcept{
+        return std::numeric_limits<size_type>::max() / sizeof(T);
+    }
+
+    void reserve(size_type new_cap){
+        if(new_cap > max_size()){
+            throw std::length_error("vector::reserve: capacity too large");
+        }
+        if(new_cap <= capacity()){
+            return;
+        }
+
+
+    }
+
+    void pop_back() noexcept{
+        --finish_;
+        destroy_at(finish_);
     }
 
 private:
