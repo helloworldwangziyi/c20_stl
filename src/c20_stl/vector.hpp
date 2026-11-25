@@ -331,9 +331,19 @@ public:
         ++finish_;
     }
 
-    void pop_back() noexcept{
+    void pop_back(){
         --finish_;
         destroy_at(finish_);
+    }
+
+    void clear() noexcept{
+        if(empty()) {
+            return;
+        }
+        while(finish_ != start_){
+            --finish_;
+            destroy_at(finish_);
+        }
     }
 
 private:

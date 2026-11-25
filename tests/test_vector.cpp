@@ -1426,6 +1426,160 @@ void test_vector_push_back_self_reference(){
     assert_same_elements(value, std_value);
 }
 
+void test_vector_pop_back_interface(){
+    c20_stl::vector<int> value{1, 2, 3};
+    std::vector<int> std_value{1, 2, 3};
+
+    static_assert(c20_stl::is_same_v<decltype(value.pop_back()), void>);
+    static_assert(c20_stl::is_same_v<decltype(value.pop_back()),
+                                     decltype(std_value.pop_back())>);
+    static_assert(noexcept(value.pop_back()) == noexcept(std_value.pop_back()));
+}
+
+void test_vector_pop_back_basic(){
+    c20_stl::vector<int> value{1, 2, 3};
+    std::vector<int> std_value{1, 2, 3};
+
+    const auto capacity_before = value.capacity();
+
+    value.pop_back();
+    std_value.pop_back();
+    assert(value.size() == std_value.size());
+    assert(value.capacity() == capacity_before);
+    assert_same_elements(value, std_value);
+
+    value.pop_back();
+    std_value.pop_back();
+    assert(value.size() == std_value.size());
+    assert_same_elements(value, std_value);
+
+    value.pop_back();
+    std_value.pop_back();
+    assert(value.empty());
+    assert(value.empty() == std_value.empty());
+    assert(value.capacity() == capacity_before);
+}
+
+void test_vector_pop_back_lifecycle(){
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        c20_stl::vector<Item> value{Item(1), Item(2), Item(3)};
+        const int constructions_before = Item::constructions;
+        const int destructions_before = Item::destructions;
+
+        value.pop_back();
+
+        assert(Item::constructions == constructions_before);
+        assert(Item::destructions == destructions_before + 1);
+        assert(value.size() == 2);
+    }
+
+    const int c20_constructions = Item::constructions;
+    const int c20_destructions = Item::destructions;
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        std::vector<Item> std_value{Item(1), Item(2), Item(3)};
+        const int constructions_before = Item::constructions;
+        const int destructions_before = Item::destructions;
+
+        std_value.pop_back();
+
+        assert(Item::constructions == constructions_before);
+        assert(Item::destructions == destructions_before + 1);
+        assert(std_value.size() == 2);
+    }
+
+    assert(Item::constructions == c20_constructions);
+    assert(Item::destructions == c20_destructions);
+}
+
+void test_vector_clear_interface(){
+    c20_stl::vector<int> value;
+    std::vector<int> std_value;
+
+    static_assert(c20_stl::is_same_v<decltype(value.clear()), void>);
+    static_assert(c20_stl::is_same_v<decltype(value.clear()),
+                                     decltype(std_value.clear())>);
+    static_assert(noexcept(value.clear()) == noexcept(std_value.clear()));
+}
+
+void test_vector_clear_basic(){
+    c20_stl::vector<int> value{1, 2, 3, 4};
+    std::vector<int> std_value{1, 2, 3, 4};
+
+    const auto capacity_before = value.capacity();
+
+    value.clear();
+    std_value.clear();
+
+    assert(value.empty());
+    assert(value.empty() == std_value.empty());
+    assert(value.size() == std_value.size());
+    assert(value.capacity() == capacity_before);
+    assert(value.capacity() == std_value.capacity());
+
+    for(int i = 0; i < 4; ++i){
+        value.push_back(i * 10);
+        std_value.push_back(i * 10);
+        assert_same_elements(value, std_value);
+    }
+}
+
+void test_vector_clear_empty(){
+    c20_stl::vector<int> value;
+    std::vector<int> std_value;
+
+    value.clear();
+    std_value.clear();
+
+    assert(value.empty());
+    assert(value.size() == std_value.size());
+    assert(value.capacity() == std_value.capacity());
+}
+
+void test_vector_clear_lifecycle(){
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        c20_stl::vector<Item> value{Item(1), Item(2), Item(3)};
+        const int constructions_before = Item::constructions;
+        const int destructions_before = Item::destructions;
+
+        value.clear();
+
+        assert(Item::constructions == constructions_before);
+        assert(Item::destructions == destructions_before + 3);
+        assert(value.empty());
+    }
+
+    const int c20_constructions = Item::constructions;
+    const int c20_destructions = Item::destructions;
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        std::vector<Item> std_value{Item(1), Item(2), Item(3)};
+        const int constructions_before = Item::constructions;
+        const int destructions_before = Item::destructions;
+
+        std_value.clear();
+
+        assert(Item::constructions == constructions_before);
+        assert(Item::destructions == destructions_before + 3);
+        assert(std_value.empty());
+    }
+
+    assert(Item::constructions == c20_constructions);
+    assert(Item::destructions == c20_destructions);
+}
+
 }
 
 int main() {
@@ -1473,4 +1627,13 @@ int main() {
     c20_stl::test_vector_push_back_lifecycle();
     c20_stl::test_vector_push_back_exception();
     c20_stl::test_vector_push_back_self_reference();
+
+    c20_stl::test_vector_pop_back_interface();
+    c20_stl::test_vector_pop_back_basic();
+    c20_stl::test_vector_pop_back_lifecycle();
+
+    c20_stl::test_vector_clear_interface();
+    c20_stl::test_vector_clear_basic();
+    c20_stl::test_vector_clear_empty();
+    c20_stl::test_vector_clear_lifecycle();
 }
