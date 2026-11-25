@@ -71,6 +71,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
   - ✅ `swap` / 拷贝构造 / 移动构造 / 拷贝赋值 / 移动赋值：覆盖所有权转移、深拷贝、自赋值、空容器和异常回滚
   - ✅ `empty` / `size` / `capacity`
   - ✅ `reserve`：扩容迁移、移动不 `noexcept` 时退拷贝、异常回滚与旧资源释放，含生命周期及 std 对照
+  - ✅ `push_back`：左值/右值双重载，容量增长溢出保护，扩容/构造异常 strong guarantee，含生命周期、MoveOnly、自引用及 std 对照
   - ⬜ `max_size` / `pop_back`：基础接口落地，测试待补
   - ✅ `data`：const/非 const 双重载，覆盖元素读写、空容器及 std 类型/noexcept 对照
   - ✅ `operator[]`：const/非 const 双重载，覆盖引用读写及 std 类型/noexcept 对照
@@ -179,3 +180,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-24 | `vector` 所有权接口毕业：`swap`、拷贝/移动构造与赋值覆盖深拷贝、资源接管、自赋值、空容器和异常安全；修复委托拷贝构造回滚后指针未置空导致的重复释放，全量 `ctest` 绿 |
 | 2026-11-24 | `vector` 容量阶段检查点：增加 `max_size`、空容器 `size`/`capacity` 保护、`reserve` 入口检查及 `pop_back`；扩容主体与测试待补，全量 `ctest` 绿 |
 | 2026-11-25 | `vector::reserve` 毕业：支持容量预留、移动不 `noexcept` 时退拷贝、迁移异常回滚及旧资源释放；覆盖空/非空扩容、不重新分配、超大请求、生命周期和 `MoveOnly` 模板分支，全量 `ctest` 绿 |
+| 2026-11-25 | `vector::push_back` 毕业：左值/右值双重载，容量增长溢出保护（`capacity()*2` 回绕修复），扩容/构造异常 strong guarantee；覆盖接口、基础插入、左值/右值、MoveOnly、容量增长、生命周期、异常安全及自引用，全量 `ctest` 绿 |
