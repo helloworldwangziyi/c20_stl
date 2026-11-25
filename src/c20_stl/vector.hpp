@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <stdexcept>
 #include <limits>
+#include <type_traits>
 #include <c20_stl/memory.hpp>
 #include <c20_stl/util.hpp>
 
@@ -260,6 +261,51 @@ public:
         }
         if(new_cap <= capacity()){
             return;
+        }
+        if(new_cap > capacity()){
+            // 保存旧状态
+            const size_type old_size = size();
+            const size_type old_capacity = capacity();
+            pointer old_start_ = start_;
+            pointer old_finish_ = finish_;
+
+            auto new_start_ = allocator_.allocate(new_cap);
+            auto new_finish_ = new_start_;
+
+
+            try{
+                for(size_type i = 0; i < old_size; ++i){
+                    // 判断一下是否支持移动构造
+                    if constexpr(std::is_nothrow_move_constructible_v<T>||!std::is_copy_constructible_v<T>){
+                        construct_at(new_finish_, c20_stl::move(old_start_[i]));
+                    }
+                    else{
+                        construct_at(new_finish_, old_start_[i]);
+                    }
+                    ++new_finish_;
+                }
+            }
+            catch(...){
+                while(new_finish_ != new_start_){
+                    --new_finish_;
+                    destroy_at(new_finish_);
+                }
+                allocator_.deallocate(new_start_, new_cap);
+                throw;
+            }
+
+            while(old_finish_ != old_start_){
+                --old_finish_;
+                destroy_at(old_finish_);
+            }
+
+            if(old_start_ != nullptr){
+                allocator_.deallocate(old_start_, old_capacity);
+            }
+
+            start_ = new_start_;
+            finish_ = new_finish_;
+            end_of_storage_ = new_start_ + new_cap;
         }
 
 
