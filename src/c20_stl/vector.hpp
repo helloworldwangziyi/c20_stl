@@ -307,8 +307,28 @@ public:
             finish_ = new_finish_;
             end_of_storage_ = new_start_ + new_cap;
         }
+    }
 
+    void push_back(const T& value){
+        if(size() == capacity()){
+            if(size() == max_size()){
+                throw std::length_error("vector::push_back: size reached max_size");
+            }
+            reserve(recommend_capacity(size() + 1));
+        }
+        construct_at(finish_, value);
+        ++finish_;
+    }
 
+    void push_back(T&& value){
+        if(size() == capacity()){
+            if(size() == max_size()){
+                throw std::length_error("vector::push_back: size reached max_size");
+            }
+            reserve(recommend_capacity(size() + 1));
+        }
+        construct_at(finish_, std::move(value));
+        ++finish_;
     }
 
     void pop_back() noexcept{
@@ -317,6 +337,16 @@ public:
     }
 
 private:
+    size_type recommend_capacity(size_type requested) const{
+        const size_type ms = max_size();
+        if(requested > ms){
+            throw std::length_error("vector::recommend_capacity: capacity too large");
+        }
+        const size_type cap = capacity();
+        if(cap >= ms / 2) return ms;
+        return (cap == 0) ? 1 : cap * 2;
+    }
+
     allocator_type allocator_;
     pointer start_;
     pointer finish_;

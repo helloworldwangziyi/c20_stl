@@ -27,6 +27,14 @@ public:
     ~Item(){
         ++destructions;
     }
+
+    bool operator==(const Item& other) const{
+        return v == other.v;
+    }
+
+    bool operator!=(const Item& other) const{
+        return !(*this == other);
+    }
 };
 
 class ThrowingItem{
@@ -45,6 +53,30 @@ public:
     }
 
     ~ThrowingItem(){
+        --alive;
+    }
+};
+
+class ThrowingMoveItem{
+public:
+    inline static int alive = 0;
+    inline static int moves_before_throw = 0;
+
+    ThrowingMoveItem(){++alive;}
+
+    ThrowingMoveItem(const ThrowingMoveItem&){
+        ++alive;
+    }
+
+    ThrowingMoveItem(ThrowingMoveItem&&){
+        if(moves_before_throw == 0){
+            throw 42;
+        }
+        --moves_before_throw;
+        ++alive;
+    }
+
+    ~ThrowingMoveItem(){
         --alive;
     }
 };
@@ -1181,6 +1213,219 @@ void test_vector_reserve_template_branches(){
     assert(std_value.capacity() >= 4);
 }
 
+void test_vector_push_back_interface(){
+    c20_stl::vector<int> value;
+    std::vector<int> std_value;
+
+    static_assert(c20_stl::is_same_v<decltype(value.push_back(1)), void>);
+    static_assert(c20_stl::is_same_v<decltype(value.push_back(1)),
+                                     decltype(std_value.push_back(1))>);
+    static_assert(noexcept(value.push_back(1)) ==
+                  noexcept(std_value.push_back(1)));
+
+    int x = 1;
+    static_assert(c20_stl::is_same_v<decltype(value.push_back(x)), void>);
+    static_assert(c20_stl::is_same_v<decltype(value.push_back(x)),
+                                     decltype(std_value.push_back(x))>);
+}
+
+void test_vector_push_back_basic(){
+    c20_stl::vector<int> value;
+    std::vector<int> std_value;
+
+    for(int i = 0; i < 10; ++i){
+        value.push_back(i * 10);
+        std_value.push_back(i * 10);
+        assert(value.size() == std_value.size());
+        assert(value.capacity() >= value.size());
+        assert_same_elements(value, std_value);
+    }
+
+    assert(value.size() == 10);
+    assert(value.back() == 90);
+}
+
+void test_vector_push_back_lvalue(){
+    Item one(1);
+    Item two(2);
+    Item three(3);
+
+    c20_stl::vector<Item> value;
+    std::vector<Item> std_value;
+
+    value.push_back(one);
+    value.push_back(two);
+    value.push_back(three);
+
+    std_value.push_back(one);
+    std_value.push_back(two);
+    std_value.push_back(three);
+
+    assert(value.size() == std_value.size());
+    assert_same_elements(value, std_value);
+}
+
+void test_vector_push_back_rvalue(){
+    c20_stl::vector<Item> value;
+    std::vector<Item> std_value;
+
+    value.push_back(Item(1));
+    value.push_back(Item(2));
+    value.push_back(Item(3));
+
+    std_value.push_back(Item(1));
+    std_value.push_back(Item(2));
+    std_value.push_back(Item(3));
+
+    assert(value.size() == std_value.size());
+    assert_same_elements(value, std_value);
+}
+
+void test_vector_push_back_move_only(){
+    c20_stl::vector<MoveOnly> value;
+    std::vector<MoveOnly> std_value;
+
+    value.push_back(MoveOnly{});
+    value.push_back(MoveOnly{});
+    std_value.push_back(MoveOnly{});
+    std_value.push_back(MoveOnly{});
+
+    assert(value.size() == std_value.size());
+    assert(value.size() == 2);
+}
+
+void test_vector_push_back_growth(){
+    c20_stl::vector<int> value;
+    std::vector<int> std_value;
+
+    std::size_t previous_capacity = 0;
+    for(int i = 0; i < 20; ++i){
+        value.push_back(i);
+        std_value.push_back(i);
+
+        assert(value.size() == std_value.size());
+        assert(value.capacity() >= value.size());
+
+        if(value.size() > previous_capacity){
+            previous_capacity = value.capacity();
+        }
+    }
+
+    assert_same_elements(value, std_value);
+}
+
+void test_vector_push_back_lifecycle(){
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        c20_stl::vector<Item> value;
+        value.push_back(Item(1));
+        value.push_back(Item(2));
+        value.push_back(Item(3));
+    }
+
+    const int c20_constructions = Item::constructions;
+    const int c20_destructions = Item::destructions;
+
+    Item::constructions = 0;
+    Item::destructions = 0;
+
+    {
+        std::vector<Item> std_value;
+        std_value.push_back(Item(1));
+        std_value.push_back(Item(2));
+        std_value.push_back(Item(3));
+    }
+
+    const int std_constructions = Item::constructions;
+    const int std_destructions = Item::destructions;
+
+    assert(c20_constructions == std_constructions);
+    assert(c20_destructions == std_destructions);
+    assert(c20_constructions == c20_destructions);
+    assert(std_constructions == std_destructions);
+}
+
+void test_vector_push_back_exception(){
+    ThrowingItem::alive = 0;
+    {
+        ThrowingItem other;
+        ThrowingItem::copies_before_throw = 10;
+        c20_stl::vector<ThrowingItem> value;
+        value.push_back(other);
+        value.push_back(other);
+        value.push_back(other);
+
+        const int alive_before = ThrowingItem::alive;
+        const auto* data_before = value.data();
+        const auto size_before = value.size();
+        const auto capacity_before = value.capacity();
+
+        ThrowingItem::copies_before_throw = 0;
+        bool c20_threw = false;
+        try{
+            value.push_back(other);
+        }
+        catch(int){
+            c20_threw = true;
+        }
+
+        assert(c20_threw);
+        assert(ThrowingItem::alive == alive_before);
+        assert(value.data() == data_before);
+        assert(value.size() == size_before);
+        assert(value.capacity() == capacity_before);
+    }
+    assert(ThrowingItem::alive == 0);
+
+    ThrowingMoveItem::alive = 0;
+    {
+        ThrowingMoveItem::moves_before_throw = 10;
+        c20_stl::vector<ThrowingMoveItem> value;
+        value.push_back(ThrowingMoveItem{});
+        value.push_back(ThrowingMoveItem{});
+        value.push_back(ThrowingMoveItem{});
+
+        const int alive_before = ThrowingMoveItem::alive;
+        const auto* data_before = value.data();
+        const auto size_before = value.size();
+        const auto capacity_before = value.capacity();
+
+        ThrowingMoveItem::moves_before_throw = 0;
+        bool c20_move_threw = false;
+        try{
+            value.push_back(ThrowingMoveItem{});
+        }
+        catch(int){
+            c20_move_threw = true;
+        }
+
+        assert(c20_move_threw);
+        assert(ThrowingMoveItem::alive == alive_before);
+        assert(value.data() == data_before);
+        assert(value.size() == size_before);
+        assert(value.capacity() == capacity_before);
+    }
+    assert(ThrowingMoveItem::alive == 0);
+}
+
+void test_vector_push_back_self_reference(){
+    c20_stl::vector<int> value{10, 20, 30};
+    std::vector<int> std_value{10, 20, 30};
+
+    value.reserve(10);
+    std_value.reserve(10);
+
+    value.push_back(value.front());
+    std_value.push_back(std_value.front());
+    assert_same_elements(value, std_value);
+
+    value.push_back(value.back());
+    std_value.push_back(std_value.back());
+    assert_same_elements(value, std_value);
+}
+
 }
 
 int main() {
@@ -1218,4 +1463,14 @@ int main() {
     c20_stl::test_vector_reserve_lifecycle();
     c20_stl::test_vector_reserve_copy_exception();
     c20_stl::test_vector_reserve_template_branches();
+
+    c20_stl::test_vector_push_back_interface();
+    c20_stl::test_vector_push_back_basic();
+    c20_stl::test_vector_push_back_lvalue();
+    c20_stl::test_vector_push_back_rvalue();
+    c20_stl::test_vector_push_back_move_only();
+    c20_stl::test_vector_push_back_growth();
+    c20_stl::test_vector_push_back_lifecycle();
+    c20_stl::test_vector_push_back_exception();
+    c20_stl::test_vector_push_back_self_reference();
 }
