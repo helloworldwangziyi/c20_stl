@@ -121,6 +121,19 @@ public:
     MoveOnly& operator=(MoveOnly&&) noexcept = default;
 };
 
+class EmplaceItem{
+public:
+    int first;
+    int second;
+
+    EmplaceItem(int first_value, int second_value)
+        : first(first_value), second(second_value){}
+
+    bool operator==(const EmplaceItem& other) const{
+        return first == other.first && second == other.second;
+    }
+};
+
 template<typename Lhs, typename Rhs>
 void assert_same_elements(const Lhs& value, const Rhs& std_value){
     assert(value.size() == std_value.size());
@@ -1457,6 +1470,131 @@ void test_vector_push_back_self_reference(){
     assert_same_elements(value, std_value);
 }
 
+void test_vector_emplace_back_interface(){
+    c20_stl::vector<EmplaceItem> value;
+    std::vector<EmplaceItem> std_value;
+
+    static_assert(c20_stl::is_same_v<
+        decltype(value.emplace_back(1, 2)),
+        c20_stl::vector<EmplaceItem>::reference>);
+    static_assert(c20_stl::is_same_v<
+        decltype(value.emplace_back(1, 2)),
+        decltype(std_value.emplace_back(1, 2))>);
+    static_assert(noexcept(value.emplace_back(1, 2)) ==
+                  noexcept(std_value.emplace_back(1, 2)));
+}
+
+void test_vector_emplace_back_basic(){
+    c20_stl::vector<EmplaceItem> value;
+    std::vector<EmplaceItem> std_value;
+
+    value.reserve(4);
+    std_value.reserve(4);
+    auto* data_before = value.data();
+    const auto capacity_before = value.capacity();
+
+    auto& result = value.emplace_back(10, 20);
+    auto& std_result = std_value.emplace_back(10, 20);
+
+    assert(&result == &value.back());
+    assert(&std_result == &std_value.back());
+    assert(result.first == 10);
+    assert(result.second == 20);
+    assert(value.data() == data_before);
+    assert(value.capacity() == capacity_before);
+    assert_same_elements(value, std_value);
+
+    result.second = 30;
+    std_result.second = 30;
+    assert(value.back().second == 30);
+    assert_same_elements(value, std_value);
+}
+
+void test_vector_emplace_back_growth(){
+    c20_stl::vector<EmplaceItem> value;
+    std::vector<EmplaceItem> std_value;
+
+    for(int i = 0; i < 10; ++i){
+        value.emplace_back(i, i * 10);
+        std_value.emplace_back(i, i * 10);
+
+        assert(value.size() == std_value.size());
+        assert(value.capacity() >= value.size());
+        assert_same_elements(value, std_value);
+    }
+}
+
+void test_vector_emplace_back_move_only(){
+    c20_stl::vector<MoveOnly> value;
+    std::vector<MoveOnly> std_value;
+
+    value.emplace_back(MoveOnly{});
+    value.emplace_back();
+    std_value.emplace_back(MoveOnly{});
+    std_value.emplace_back();
+
+    assert(value.size() == std_value.size());
+    assert(value.size() == 2);
+    assert(value.capacity() >= value.size());
+}
+
+void test_vector_emplace_back_self_reference(){
+    c20_stl::vector<EmplaceItem> value;
+    std::vector<EmplaceItem> std_value;
+
+    value.emplace_back(1, 10);
+    value.emplace_back(2, 20);
+    std_value.emplace_back(1, 10);
+    std_value.emplace_back(2, 20);
+
+    assert(value.size() == value.capacity());
+    value.emplace_back(value[0]);
+    std_value.emplace_back(std_value[0]);
+
+    assert(value.size() == 3);
+    assert_same_elements(value, std_value);
+}
+
+void test_vector_emplace_back_exception(){
+    ThrowingItem::alive = 0;
+    {
+        ThrowingItem other;
+        ThrowingItem::copies_before_throw = 10;
+        c20_stl::vector<ThrowingItem> value(3, other);
+
+        auto* data_before = value.data();
+        const auto size_before = value.size();
+        const auto capacity_before = value.capacity();
+        const int alive_before = ThrowingItem::alive;
+
+        auto check_exception = [&](int copies_before_throw){
+            ThrowingItem::copies_before_throw = copies_before_throw;
+            bool threw = false;
+
+            try{
+                value.emplace_back(other);
+            }
+            catch(int){
+                threw = true;
+            }
+
+            assert(threw);
+            assert(value.data() == data_before);
+            assert(value.size() == size_before);
+            assert(value.capacity() == capacity_before);
+            assert(ThrowingItem::alive == alive_before);
+        };
+
+        // 新尾部构造失败：只释放新缓冲区，不析构未构造的位置。
+        check_exception(0);
+
+        // 新尾部和一个旧元素构造成功，第二个旧元素迁移失败：
+        // 已迁移前缀与新尾部都必须析构。
+        check_exception(2);
+    }
+    assert(ThrowingItem::alive == 0);
+}
+
 void test_vector_pop_back_interface(){
     c20_stl::vector<int> value{1, 2, 3};
     std::vector<int> std_value{1, 2, 3};
@@ -2134,6 +2272,13 @@ int main() {
     c20_stl::test_vector_push_back_lifecycle();
     c20_stl::test_vector_push_back_exception();
     c20_stl::test_vector_push_back_self_reference();
+
+    c20_stl::test_vector_emplace_back_interface();
+    c20_stl::test_vector_emplace_back_basic();
+    c20_stl::test_vector_emplace_back_growth();
+    c20_stl::test_vector_emplace_back_move_only();
+    c20_stl::test_vector_emplace_back_self_reference();
+    c20_stl::test_vector_emplace_back_exception();
 
     c20_stl::test_vector_pop_back_interface();
     c20_stl::test_vector_pop_back_basic();

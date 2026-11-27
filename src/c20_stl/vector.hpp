@@ -331,6 +331,75 @@ public:
         ++finish_;
     }
 
+    template <typename... Args>
+    reference emplace_back(Args&&... args){
+        if(size() < capacity()){
+            construct_at(finish_, c20_stl::forward<Args>(args)...);
+            ++finish_;
+            return back();
+        }
+
+        if(size() == max_size()){
+            throw std::length_error("vector::emplace_back: size reached max_size");
+        }
+
+        const size_type old_size = size();
+        const size_type old_capacity = capacity();
+        const size_type new_capacity = recommend_capacity(old_size + 1);
+        pointer old_start = start_;
+        pointer old_finish = finish_;
+
+        pointer new_start = allocator_.allocate(new_capacity);
+        pointer new_prefix_finish = new_start;
+        pointer new_tail = new_start + old_size;
+
+        // 先构造新尾部，保证引用旧元素的 args 在构造期间仍然有效。
+        try{
+            construct_at(new_tail, c20_stl::forward<Args>(args)...);
+        }
+        catch(...){
+            allocator_.deallocate(new_start, new_capacity);
+            throw;
+        }
+
+        // 再迁移旧前缀；两段已构造区间分别回滚，避免析构未构造的空位。
+        try{
+            for(size_type i = 0; i < old_size; ++i){
+                if constexpr(std::is_nothrow_move_constructible_v<T> ||
+                             !std::is_copy_constructible_v<T>){
+                    construct_at(new_prefix_finish, c20_stl::move(old_start[i]));
+                }
+                else{
+                    construct_at(new_prefix_finish, old_start[i]);
+                }
+                ++new_prefix_finish;
+            }
+        }
+        catch(...){
+            while(new_prefix_finish != new_start){
+                --new_prefix_finish;
+                destroy_at(new_prefix_finish);
+            }
+            destroy_at(new_tail);
+            allocator_.deallocate(new_start, new_capacity);
+            throw;
+        }
+
+        while(old_finish != old_start){
+            --old_finish;
+            destroy_at(old_finish);
+        }
+        if(old_start != nullptr){
+            allocator_.deallocate(old_start, old_capacity);
+        }
+
+        start_ = new_start;
+        finish_ = new_tail + 1;
+        end_of_storage_ = new_start + new_capacity;
+        return back();
+    }
+
+
     void pop_back(){
         --finish_;
         destroy_at(finish_);

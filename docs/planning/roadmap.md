@@ -72,6 +72,7 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
   - ✅ `empty` / `size` / `capacity`
   - ✅ `reserve`：扩容迁移、移动不 `noexcept` 时退拷贝、异常回滚与旧资源释放，含生命周期及 std 对照
   - ✅ `push_back`：左值/右值双重载，容量增长溢出保护，扩容/构造异常 strong guarantee，含生命周期、MoveOnly、自引用及 std 对照
+  - ✅ `emplace_back`：可变参数完美转发与原位构造，扩容时先构造新尾部再迁移旧前缀，覆盖 MoveOnly、自引用、分段异常回滚及 std 对照
   - ✅ `max_size` / `pop_back` / `clear`：接口与 std 对齐，覆盖空/非空、生命周期、异常安全及 std 对照
   - ✅ `resize`：默认/填充双重载，覆盖缩容、容量内/重新分配扩容、MoveOnly、自引用、异常回滚、生命周期及 std 对照
   - ✅ `data`：const/非 const 双重载，覆盖元素读写、空容器及 std 类型/noexcept 对照
@@ -184,3 +185,4 @@ vector 的本质是"裸内存 + 在这块内存上构造对象"，先造工具�
 | 2026-11-25 | `vector::push_back` 毕业：左值/右值双重载，容量增长溢出保护（`capacity()*2` 回绕修复），扩容/构造异常 strong guarantee；覆盖接口、基础插入、左值/右值、MoveOnly、容量增长、生命周期、异常安全及自引用，全量 `ctest` 绿 |
 | 2026-11-25 | `vector::pop_back`/`clear` 毕业：接口与 std 对齐（修正 `pop_back` 多余的 `noexcept`），覆盖空/非空、生命周期、capacity 不变及 std 对照，全量 `ctest` 绿 |
 | 2026-11-27 | `vector::resize` 毕业：默认/填充双重载覆盖缩容、容量内/重新分配扩容、MoveOnly、自引用、异常回滚及生命周期；补齐填充重载接口、长度错误和 std 对照测试，全量 `ctest` 绿 |
+| 2026-11-27 | `vector::emplace_back` 毕业：实现可变参数完美转发与原位构造；扩容时先构造新尾部再迁移旧前缀，分段处理构造异常回滚；覆盖接口、容量增长、MoveOnly、自引用和生命周期，全量 `ctest` 绿 |
