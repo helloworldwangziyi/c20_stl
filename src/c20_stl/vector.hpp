@@ -399,6 +399,17 @@ public:
         return back();
     }
 
+    iterator insert(const_iterator pos, const T& value){
+        if(pos == cend()){
+
+        }
+        
+    }
+
+    iterator insert(const_iterator pos, T&& value){
+
+    }
+
 
     void pop_back(){
         --finish_;
