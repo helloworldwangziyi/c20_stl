@@ -346,6 +346,175 @@ public:
         }
     }
 
+    void resize(size_type count){
+        if(count > max_size()){
+            throw std::length_error("vector::resize: size too large");
+        }
+
+        const size_type old_size = size();
+        if(count < old_size){
+            pointer new_finish_ = start_ + count;
+            while(finish_ != new_finish_){
+                --finish_;
+                destroy_at(finish_);
+            }
+            return;
+        }
+        if(count == old_size){
+            return;
+        }
+
+        if(count <= capacity()){
+            pointer old_finish_ = finish_;
+            try{
+                for(size_type i = old_size; i < count; ++i){
+                    construct_at(finish_);
+                    ++finish_;
+                }
+            }
+            catch(...){
+                while(finish_ != old_finish_){
+                    --finish_;
+                    destroy_at(finish_);
+                }
+                throw;
+            }
+            return;
+        }
+
+        pointer new_start_ = allocator_.allocate(count);
+        pointer new_finish_ = new_start_;
+        pointer new_tail_ = new_start_ + old_size;
+        pointer new_tail_finish_ = new_tail_;
+
+        try{
+            for(size_type i = old_size; i < count; ++i){
+                construct_at(new_tail_finish_);
+                ++new_tail_finish_;
+            }
+            for(size_type i = 0; i < old_size; ++i){
+                if constexpr(std::is_nothrow_move_constructible_v<T>||!std::is_copy_constructible_v<T>){
+                    construct_at(new_finish_, c20_stl::move(start_[i]));
+                }
+                else{
+                    construct_at(new_finish_, start_[i]);
+                }
+                ++new_finish_;
+            }
+        }
+        catch(...){
+            while(new_finish_ != new_start_){
+                --new_finish_;
+                destroy_at(new_finish_);
+            }
+            while(new_tail_finish_ != new_tail_){
+                --new_tail_finish_;
+                destroy_at(new_tail_finish_);
+            }
+            allocator_.deallocate(new_start_, count);
+            throw;
+        }
+
+        pointer old_start_ = start_;
+        pointer old_finish_ = finish_;
+        const size_type old_capacity = capacity();
+
+        while(old_finish_ != old_start_){
+            --old_finish_;
+            destroy_at(old_finish_);
+        }
+        if(old_start_ != nullptr){
+            allocator_.deallocate(old_start_, old_capacity);
+        }
+
+        start_ = new_start_;
+        finish_ = new_tail_finish_;
+        end_of_storage_ = new_start_ + count;
+    }
+
+    void resize(size_type count, const T& value){
+        if(count > max_size()){
+            throw std::length_error("vector::resize: size too large");
+        }
+        const size_type old_size = size();
+        if(count < old_size){
+            pointer new_finish_ = start_ + count;
+            while(finish_ != new_finish_){
+                --finish_;
+                destroy_at(finish_);
+            }
+            return;
+        }
+        if(count == size()){
+            return;
+        }
+
+        if(count <= capacity()){
+            pointer old_finish_ = finish_;
+            try{
+                for(size_type i = old_size; i< count; ++i){
+                    construct_at(finish_, value);
+                    ++finish_;
+                }
+            }catch(...){
+                while(finish_ != old_finish_){
+                    --finish_;
+                    destroy_at(finish_);
+                }
+                throw;
+            }
+            return;
+        }
+
+        pointer new_start_ = allocator_.allocate(count);
+        pointer new_finish_ = new_start_;
+        pointer new_tail_ = new_start_ + old_size;
+        pointer new_tail_finish_ = new_tail_;
+
+        try{
+            for(size_type i = old_size; i < count; ++i){
+                construct_at(new_tail_finish_, value);
+                ++new_tail_finish_;
+            }
+            for(size_type i = 0; i<old_size; ++i){
+                if constexpr(std::is_nothrow_move_constructible_v<T>||!std::is_copy_constructible_v<T>){
+                    construct_at(new_finish_, std::move(*(start_ + i)));
+                }else{
+                    construct_at(new_finish_, *(start_ + i));
+                }
+                ++new_finish_;
+            }
+        }catch(...){
+            while(new_finish_ != new_start_){
+                --new_finish_;
+                destroy_at(new_finish_);
+            }
+            while(new_tail_finish_ != new_tail_){
+                --new_tail_finish_;
+                destroy_at(new_tail_finish_);
+            }
+            allocator_.deallocate(new_start_, count);
+            throw;
+        }
+
+        pointer old_start_ = start_;
+        pointer old_finish_ = finish_;
+        const size_type old_capacity = capacity();
+
+        while(old_finish_ != old_start_){
+            --old_finish_;
+            destroy_at(old_finish_);
+        }
+        if(old_start_ != nullptr){
+            allocator_.deallocate(old_start_, old_capacity);
+        }
+
+        start_ = new_start_;
+        finish_ = new_tail_finish_;
+        end_of_storage_ = new_start_ + count;
+
+    }
+
 private:
     size_type recommend_capacity(size_type requested) const{
         const size_type ms = max_size();
