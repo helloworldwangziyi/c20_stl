@@ -1859,6 +1859,234 @@ void test_vector_resize_copy_exception(){
     assert(ThrowingItem::alive == 0);
 }
 
+void test_vector_resize_value_interface(){
+    c20_stl::vector<int> value;
+    std::vector<int> std_value;
+
+    static_assert(c20_stl::is_same_v<decltype(value.resize(4, 7)), void>);
+    static_assert(c20_stl::is_same_v<
+        decltype(value.resize(4, 7)), decltype(std_value.resize(4, 7))>);
+    static_assert(noexcept(value.resize(4, 7)) ==
+                  noexcept(std_value.resize(4, 7)));
+
+    int fill = 7;
+    static_assert(c20_stl::is_same_v<
+        decltype(value.resize(4, fill)), decltype(std_value.resize(4, fill))>);
+}
+
+void test_vector_resize_value_basic(){
+    c20_stl::vector<int> value{10, 20, 30};
+    std::vector<int> std_value{10, 20, 30};
+
+    auto* initial_data = value.data();
+    const auto initial_capacity = value.capacity();
+
+    value.resize(2, 7);
+    std_value.resize(2, 7);
+    assert(value.data() == initial_data);
+    assert(value.capacity() == initial_capacity);
+    assert_same_elements(value, std_value);
+
+    value.resize(2, 99);
+    std_value.resize(2, 99);
+    assert(value.data() == initial_data);
+    assert(value.capacity() == initial_capacity);
+    assert_same_elements(value, std_value);
+
+    value.reserve(8);
+    std_value.reserve(8);
+
+    auto* data_before = value.data();
+    const auto capacity_before = value.capacity();
+
+    value.resize(5, 7);
+    std_value.resize(5, 7);
+    assert(value.data() == data_before);
+    assert(value.capacity() == capacity_before);
+    assert_same_elements(value, std_value);
+
+    value.resize(8, 9);
+    std_value.resize(8, 9);
+    assert(value.data() == data_before);
+    assert(value.capacity() == capacity_before);
+    assert_same_elements(value, std_value);
+
+    value.resize(10, 11);
+    std_value.resize(10, 11);
+    assert(value.data() != data_before);
+    assert(value.size() == 10);
+    assert(value.capacity() >= value.size());
+    assert_same_elements(value, std_value);
+
+    auto* full_data = value.data();
+    const auto full_capacity = value.capacity();
+
+    value.resize(0, 13);
+    std_value.resize(0, 13);
+    assert(value.empty());
+    assert(value.data() == full_data);
+    assert(value.capacity() == full_capacity);
+    assert_same_elements(value, std_value);
+
+    c20_stl::vector<int> empty_value;
+    std::vector<int> std_empty_value;
+
+    empty_value.resize(3, 21);
+    std_empty_value.resize(3, 21);
+    assert(empty_value.size() == 3);
+    assert(empty_value.capacity() >= empty_value.size());
+    assert_same_elements(empty_value, std_empty_value);
+}
+
+void test_vector_resize_value_lifecycle(){
+    ThrowingDefaultItem::alive = 0;
+    {
+        ThrowingDefaultItem other(7);
+        c20_stl::vector<ThrowingDefaultItem> value(2, other);
+        std::vector<ThrowingDefaultItem> std_value(2, other);
+
+        const int alive_before = ThrowingDefaultItem::alive;
+
+        // 填充重载只能拷贝 value，不能通过默认构造补齐新元素。
+        ThrowingDefaultItem::defaults_before_throw = 0;
+        value.resize(4, other);
+        assert(ThrowingDefaultItem::alive == alive_before + 2);
+        std_value.resize(4, other);
+        assert(ThrowingDefaultItem::alive == alive_before + 4);
+
+        for(std::size_t i = 0; i < value.size(); ++i){
+            assert(value[i].v == 7);
+        }
+        assert_same_elements(value, std_value);
+
+        const int alive_after_growth = ThrowingDefaultItem::alive;
+        value.resize(1, other);
+        std_value.resize(1, other);
+        assert(ThrowingDefaultItem::alive == alive_after_growth - 6);
+        assert_same_elements(value, std_value);
+        assert(ThrowingDefaultItem::alive == 3);
+    }
+    assert(ThrowingDefaultItem::alive == 0);
+}
+
+void test_vector_resize_value_length_error(){
+    c20_stl::vector<int> value{1, 2, 3};
+    std::vector<int> std_value{1, 2, 3};
+
+    auto check_length_error = [](auto& current){
+        auto* data_before = current.data();
+        const auto size_before = current.size();
+        const auto capacity_before = current.capacity();
+        bool threw = false;
+
+        try{
+            current.resize(current.max_size() + 1, 7);
+        }
+        catch(const std::length_error&){
+            threw = true;
+        }
+
+        assert(threw);
+        assert(current.data() == data_before);
+        assert(current.size() == size_before);
+        assert(current.capacity() == capacity_before);
+    };
+
+    check_length_error(value);
+    check_length_error(std_value);
+    assert_same_elements(value, std_value);
+}
+
+void test_vector_resize_value_copy_exception(){
+    ThrowingItem::alive = 0;
+    {
+        ThrowingItem other;
+        ThrowingItem::copies_before_throw = 10;
+        c20_stl::vector<ThrowingItem> value(3, other);
+
+        ThrowingItem::copies_before_throw = 10;
+        std::vector<ThrowingItem> std_value(3, other);
+
+        ThrowingItem::copies_before_throw = 10;
+        value.reserve(6);
+        ThrowingItem::copies_before_throw = 10;
+        std_value.reserve(6);
+
+        auto check_c20_exception = [&other](auto& current, std::size_t count,
+                                            int copies_before_throw){
+            auto* data_before = current.data();
+            const auto size_before = current.size();
+            const auto capacity_before = current.capacity();
+            const int alive_before = ThrowingItem::alive;
+            ThrowingItem::copies_before_throw = copies_before_throw;
+            bool threw = false;
+
+            try{
+                current.resize(count, other);
+            }
+            catch(int){
+                threw = true;
+            }
+
+            assert(threw);
+            assert(current.data() == data_before);
+            assert(current.size() == size_before);
+            assert(current.capacity() == capacity_before);
+            assert(ThrowingItem::alive == alive_before);
+        };
+
+        auto check_std_exception = [&other](auto& current, std::size_t count,
+                                            int copies_before_throw){
+            ThrowingItem::copies_before_throw = copies_before_throw;
+            bool threw = false;
+
+            try{
+                current.resize(count, other);
+            }
+            catch(int){
+                threw = true;
+            }
+
+            assert(threw);
+        };
+
+        // 容量足够：新增尾部拷贝失败，只回滚新增元素。
+        check_c20_exception(value, 6, 1);
+        check_std_exception(std_value, 6, 1);
+        std_value.resize(3, other);
+
+        // 重新分配：9 个新增元素先构造成功，迁移第 2 个旧元素时失败，
+        // 新增尾部和已迁移前缀都必须析构，新内存也必须释放。
+        check_c20_exception(value, 12, 10);
+        check_std_exception(std_value, 12, 10);
+        std_value.resize(3, other);
+    }
+    assert(ThrowingItem::alive == 0);
+}
+
+void test_vector_resize_value_self_reference(){
+    c20_stl::vector<int> value{10, 20, 30};
+    std::vector<int> std_value{10, 20, 30};
+
+    value.reserve(6);
+    std_value.reserve(6);
+
+    value.resize(6, value[1]);
+    std_value.resize(6, std_value[1]);
+    assert_same_elements(value, std_value);
+    assert(value[3] == 20);
+    assert(value[4] == 20);
+    assert(value[5] == 20);
+
+    // size == capacity，以下调用必然重新分配，fill 仍引用旧存储中的元素。
+    value.resize(12, value[2]);
+    std_value.resize(12, std_value[2]);
+    assert_same_elements(value, std_value);
+    for(std::size_t i = 6; i < value.size(); ++i){
+        assert(value[i] == 30);
+    }
+}
+
 }
 
 int main() {
@@ -1923,4 +2151,11 @@ int main() {
     c20_stl::test_vector_resize_length_error();
     c20_stl::test_vector_resize_default_exception();
     c20_stl::test_vector_resize_copy_exception();
+
+    c20_stl::test_vector_resize_value_interface();
+    c20_stl::test_vector_resize_value_basic();
+    c20_stl::test_vector_resize_value_lifecycle();
+    c20_stl::test_vector_resize_value_length_error();
+    c20_stl::test_vector_resize_value_copy_exception();
+    c20_stl::test_vector_resize_value_self_reference();
 }
